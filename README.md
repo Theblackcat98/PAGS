@@ -116,3 +116,31 @@ The core templates are:
 - `ARCHITECTURE.md` — current system structure and behavior
 
 Optional templates cover design, dependencies, quality, and exceptions.
+
+## Guided installer
+
+The dependency-free installer lives at `scripts/install-pags.py` and requires
+Python 3.10 or later. From a PAGS checkout, run:
+
+```text
+./scripts/install-pags.py /path/to/repository
+```
+
+Omit the repository path to install into the current directory. The installer:
+
+- detects greenfield or brownfield projects and lets the user confirm the mode;
+- defaults to a minimal adoption profile;
+- suggests optional documents from project markers;
+- previews every create, replacement, and preserved file;
+- fills the project name, repository path, and current date;
+- keeps existing files by default;
+- supports timestamped backups before explicit replacement; and
+- can be rerun without changing installed documents.
+
+Use `--dry-run` to inspect the installation plan without changing files. Use
+`--yes` for non-interactive minimal installation, or choose `--profile core`
+and `--profile complete` for wider adoption. Run
+`./scripts/install-pags.py --help` for all options.
+
+The recommended next step is to validate the installer in one real greenfield
+and one real brownfield repository.

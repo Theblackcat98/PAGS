@@ -28,6 +28,17 @@ Use these only when the project needs them:
 
 ## Adoption
 
+From a PAGS checkout, use the guided installer before copying files manually:
+
+```text
+./scripts/install-pags.py /path/to/repository
+```
+
+The installer detects the project type, selects a minimal starting set by
+default, offers relevant optional documents, and previews conflicts. It keeps
+existing files unless replacement is explicitly selected; selected replacements
+are backed up first. Use `--dry-run` to inspect the plan without writing files.
+
 ### Greenfield
 
 1. Copy the core templates.

@@ -1,8 +1,6 @@
 # [PROJECT_NAME] Charter
 
-> Keep this document focused on durable identity, intent, and boundaries. Put
-> implementation details in `.pags/ARCHITECTURE.md` and reversible work in the
-> roadmap or task system.
+> Keep this document focused on durable identity, intent, and boundaries. Put implementation details in `.pags/ARCHITECTURE.md` and reversible work in the roadmap or task system.
 
 - **Status:** [DRAFT | ACCEPTED]
 - **Owner:** [OWNER_OR_TEAM]
