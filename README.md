@@ -106,19 +106,23 @@ Step-by-step checklists for both are in
 `scripts/install-pags.py [target]` installs into the target directory (the
 current directory by default). It:
 
-- detects greenfield or brownfield and asks the user to confirm;
+- detects greenfield or brownfield from the evidence, prints it, and asks
+  the user to confirm (see the detection decision below);
 - defaults to the minimal profile; `--profile core` and `--profile complete`
   install more;
 - previews every file it will create, replace, update or keep;
 - fills the project name and the charter's creation date;
 - keeps existing documents by default, and backs them up before an explicit
-  replacement (`--conflict backup`);
+  replacement (`--conflict backup`) into a `.pags-backup-*` folder that git
+  ignores;
 - always installs `.pags/check.py`, and on a rerun updates a changed copy
   after backing it up;
 - can be rerun safely.
 
-Use `--dry-run` to see the plan without changing files and `--yes` for a
-non-interactive install. `--help` lists every option.
+At every menu, Enter picks the first, recommended option. Use `--dry-run` to
+see the plan without changing files; it works without a terminal by using the
+defaults. Use `--yes` for a non-interactive install. Declining the plan exits
+0 and changes nothing. `--help` lists every option.
 
 ## Records checker
 
@@ -219,6 +223,25 @@ design notes after, instead of a separate design document.
 "Portable" names what PAGS adds to the Veritas system it generalizes: the
 same records and loop, adoptable by any repository, new or existing.
 
+**2026-09-27: greenfield or brownfield.** The installer detects the mode
+from evidence, and the user decides at the first prompt. The rule:
+
+1. No files other than docs and config: greenfield.
+2. More than 10 commits touched the target folder: brownfield. Only the
+   folder's own history counts, so a new package in a monorepo is not judged
+   by the monorepo.
+3. 10 or more files other than docs and config: brownfield.
+4. Otherwise it is a tie, and a build file (`package.json`, `Cargo.toml`,
+   `meson.build`, `CMakeLists.txt`, …) makes it brownfield.
+
+Docs and config means dotfiles and dot-folders, `*.md`, `*.rst`, `*.txt`,
+and `README*`, `LICENSE*`, `CHANGELOG*` and similar. `node_modules` is
+skipped.
+
+**2026-09-27: backups.** Each `.pags-backup-*` folder contains a
+`.gitignore` with `*`, so git ignores it without the installer editing the
+project's own `.gitignore`.
+
 ### Open questions
 
 - Where the records live: `.pags/` or `docs/pags/`
@@ -235,10 +258,10 @@ The full list of follow-ups is tracked in
 
 ### Next steps
 
-1. Fix the installer's Enter-key default
-   ([#2](https://github.com/Theblackcat98/PAGS/issues/2)) and extend the
-   tests to the rest of the installer
-   ([#9](https://github.com/Theblackcat98/PAGS/issues/9)).
+1. Finish the installer tests
+   ([#9](https://github.com/Theblackcat98/PAGS/issues/9)). Menus, rendered
+   content, detection and the CLI edge cases are covered. Add CI that runs
+   `python3 -m unittest discover -s tests`.
 2. Pilot PAGS on one real greenfield and one real brownfield repository
    ([#24](https://github.com/Theblackcat98/PAGS/issues/24)), running the
    checker in each, and adjust the error and warning split from what it

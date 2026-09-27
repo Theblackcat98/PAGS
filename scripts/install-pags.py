@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 from dataclasses import dataclass
@@ -61,42 +62,66 @@ MINIMAL_TEMPLATE_NAMES = {
     "DECISIONS.md",
 }
 
-PROJECT_FILE_MARKERS = {
-    ".editorconfig",
-    ".gitignore",
+# Brownfield/greenfield detection. History and code decide; build files only
+# break a tie. The user confirms the result at the first prompt.
+HISTORY_THRESHOLD = 10  # more commits than this touching the target: brownfield
+CODE_FILE_THRESHOLD = 10  # this many non-doc files: brownfield
+
+BUILD_MARKERS = (
     "BUILD.bazel",
+    "CMakeLists.txt",
     "Cargo.toml",
     "Gemfile",
     "Makefile",
+    "Package.swift",
     "Taskfile.yml",
     "build.gradle",
     "build.gradle.kts",
+    "build.zig",
     "composer.json",
+    "configure.ac",
+    "deno.json",
     "go.mod",
+    "meson.build",
     "mix.exs",
     "package.json",
     "pom.xml",
     "pyproject.toml",
     "requirements.txt",
-    "setup.py",
     "setup.cfg",
-}
+    "setup.py",
+    "*.csproj",
+    "*.sln",
+)
 
-PROJECT_DIRECTORY_MARKERS = {
-    ".github",
-    "app",
-    "apps",
-    "lib",
-    "src",
-    "test",
-    "tests",
-}
+DOC_NAME_PREFIXES = (
+    "authors",
+    "changelog",
+    "changes",
+    "code_of_conduct",
+    "codeowners",
+    "contributing",
+    "copying",
+    "history",
+    "licence",
+    "license",
+    "notice",
+    "readme",
+    "security",
+)
+DOC_SUFFIXES = {".adoc", ".markdown", ".md", ".rst", ".txt"}
+SKIPPED_DIRECTORIES = {"node_modules", "__pycache__", "venv"}
+
 
 class InstallerError(Exception):
     pass
 
 
 class UserCancelled(Exception):
+    pass
+
+
+class PlanDeclined(Exception):
     pass
 
 
@@ -183,14 +208,74 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def has_project_markers(target: Path) -> bool:
-    return any((target / marker).exists() for marker in PROJECT_FILE_MARKERS) or any(
-        (target / marker).is_dir() for marker in PROJECT_DIRECTORY_MARKERS
+@dataclass(frozen=True)
+class Detection:
+    mode: str
+    reason: str
+
+
+def commit_count(target: Path) -> int | None:
+    """Commits that touched the target folder, or None without git history."""
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(target), "rev-list", "--count", "HEAD", "--", "."],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if result.returncode != 0 or not result.stdout.strip().isdigit():
+        return None
+    return int(result.stdout.strip())
+
+
+def is_doc_or_config(name: str) -> bool:
+    lowered = name.lower()
+    return (
+        name.startswith(".")
+        or Path(lowered).suffix in DOC_SUFFIXES
+        or lowered.startswith(DOC_NAME_PREFIXES)
     )
 
 
-def detect_mode(target: Path) -> str:
-    return "brownfield" if has_project_markers(target) else "greenfield"
+def count_code_files(target: Path, limit: int = CODE_FILE_THRESHOLD) -> int:
+    """Count files that are not docs or config, stopping at `limit`."""
+    count = 0
+    for _, directories, files in os.walk(target):
+        directories[:] = sorted(
+            name for name in directories if not name.startswith(".") and name not in SKIPPED_DIRECTORIES
+        )
+        count += sum(not is_doc_or_config(name) for name in files)
+        if count >= limit:
+            return limit
+    return count
+
+
+def build_marker(target: Path) -> str | None:
+    for pattern in BUILD_MARKERS:
+        found = next(iter(sorted(target.glob(pattern))), None)
+        if found and found.is_file():
+            return found.name
+    return None
+
+
+def detect_mode(target: Path) -> Detection:
+    commits = commit_count(target)
+    files = count_code_files(target)
+    history = "no git history" if commits is None else f"{commits} commit{'s' * (commits != 1)}"
+    code = f"{files}{'+' if files >= CODE_FILE_THRESHOLD else ''} non-doc file{'s' * (files != 1)}"
+    evidence = f"{history}, {code}"
+    if files == 0:
+        return Detection("greenfield", evidence)
+    if commits is not None and commits > HISTORY_THRESHOLD:
+        return Detection("brownfield", evidence)
+    if files >= CODE_FILE_THRESHOLD:
+        return Detection("brownfield", evidence)
+    marker = build_marker(target)
+    if marker:
+        return Detection("brownfield", f"{evidence}; {marker} breaks the tie")
+    return Detection("greenfield", evidence)
 
 
 def should_use_color(args: argparse.Namespace) -> bool:
@@ -199,14 +284,18 @@ def should_use_color(args: argparse.Namespace) -> bool:
     return sys.stdout.isatty()
 
 
-def ask_choice(printer: Printer, prompt: str, choices: Sequence[str], default: int) -> int:
+def ask_choice(printer: Printer, prompt: str, choices: Sequence[str], default: int = 1) -> int:
+    """Ask for a 1-based menu number and return the chosen 0-based index.
+
+    `default` is the menu number Enter selects, as shown to the user.
+    """
     while True:
         try:
-            raw = input(prompt).strip()
+            raw = input(f"{prompt}  (default {default}): ").strip()
         except (EOFError, KeyboardInterrupt) as error:
             raise UserCancelled from error
         if not raw:
-            return default
+            return default - 1
         if raw.isdigit() and 1 <= int(raw) <= len(choices):
             return int(raw) - 1
         printer.warning(f"Enter a number from 1 to {len(choices)}.")
@@ -229,19 +318,18 @@ def ask_confirmation(printer: Printer, prompt: str, default: bool) -> bool:
 
 
 def choose_mode(args: argparse.Namespace, target: Path, printer: Printer) -> str:
-    detected = detect_mode(target)
-    if args.mode != "auto" or args.yes:
-        return detected if args.mode == "auto" else args.mode
+    if args.mode != "auto":
+        return args.mode
+    detection = detect_mode(target)
+    detected = detection.mode
     printer.print()
-    printer.print(
-        f"  Detected: {printer.paint(detected, 'cyan')}  "
-        f"({target.name})"
-    )
+    printer.print(f"  Detected: {printer.paint(detected, 'cyan')}  ({detection.reason})")
+    if args.yes:
+        return detected
     choice = ask_choice(
         printer,
-        "  Project type: [1] Use detection  [2] Greenfield  [3] Brownfield: ",
+        "  Project type: [1] Use detection  [2] Greenfield  [3] Brownfield",
         ("Use detection", "Greenfield", "Brownfield"),
-        1,
     )
     if choice == 1:
         return "greenfield"
@@ -262,12 +350,7 @@ def choose_profile(args: argparse.Namespace, mode: str, printer: Printer) -> str
     printer.print(f"    1  Minimal       Constitution, work, and decisions{' + current architecture' if mode == 'brownfield' else ''}")
     printer.print("    2  Core          All core PAGS documents")
     printer.print("    3  Complete      Core documents plus every optional template")
-    choice = ask_choice(
-        printer,
-        "  Choose: ",
-        ("Minimal", "Core", "Complete"),
-        1,
-    )
+    choice = ask_choice(printer, "  Choose", ("Minimal", "Core", "Complete"))
     return ("minimal", "core", "complete")[choice]
 
 
@@ -282,7 +365,7 @@ def choose_project_name(args: argparse.Namespace, target: Path, printer: Printer
         except (EOFError, KeyboardInterrupt) as error:
             raise UserCancelled from error
     project_name = " ".join(project_name.split())
-    if not project_name or "\n" in project_name or "\r" in project_name:
+    if not project_name:
         raise InstallerError("The project name must not be empty.")
     return project_name
 
@@ -349,9 +432,8 @@ def choose_conflict_policy(
         printer.print(f"    {action.template.destination}")
     choice = ask_choice(
         printer,
-        "  Conflict policy: [1] Keep existing (recommended)  [2] Back up and replace: ",
+        "  Conflict policy: [1] Keep existing (recommended)  [2] Back up and replace",
         ("Keep existing", "Back up and replace"),
-        1,
     )
     return ("skip", "backup")[choice]
 
@@ -456,6 +538,9 @@ def install(actions: Sequence[Action], target: Path) -> tuple[Path | None, list[
     write_actions = [action for action in actions if action.status in {"create", "replace", "update"}]
     backup = backup_path(target) if replace_actions else None
     if backup:
+        backup.mkdir(parents=True)
+        # Keeps the backup out of git without touching the project's .gitignore.
+        (backup / ".gitignore").write_text("*\n", encoding="utf-8")
         for action in replace_actions:
             backup_destination = backup / action.template.destination
             backup_destination.parent.mkdir(parents=True, exist_ok=True)
@@ -501,7 +586,9 @@ def run(args: argparse.Namespace) -> int:
     if not TEMPLATE_DIR.is_dir():
         raise InstallerError(f"Template directory not found: {TEMPLATE_DIR}")
     if not args.yes and not sys.stdin.isatty():
-        raise InstallerError("Interactive input is unavailable. Use --yes for non-interactive use.")
+        if not args.dry_run:
+            raise InstallerError("Interactive input is unavailable. Use --yes for non-interactive use.")
+        args.yes = True
 
     printer.banner(args.dry_run)
     mode = choose_mode(args, target, printer)
@@ -521,7 +608,7 @@ def run(args: argparse.Namespace) -> int:
     if not args.dry_run and not args.yes:
         printer.print()
         if not ask_confirmation(printer, "  Apply this plan?", False):
-            raise UserCancelled
+            raise PlanDeclined
 
     printer.print()
     if args.dry_run:
@@ -530,7 +617,7 @@ def run(args: argparse.Namespace) -> int:
 
     backup, written = install(actions, target)
     if backup:
-        printer.warning(f"Backup created: {backup}")
+        printer.warning(f"Backup created: {backup.relative_to(target)}/ (ignored by git; delete it when done)")
     for destination in written:
         printer.success(f"{destination.relative_to(target)}")
     printer.print()
@@ -547,6 +634,10 @@ def main() -> int:
     printer = Printer(should_use_color(args))
     try:
         return run(args)
+    except PlanDeclined:
+        printer.print()
+        printer.warning("Plan declined. No files were changed.")
+        return 0
     except UserCancelled:
         printer.print()
         printer.warning("Installation cancelled. No files were changed.")
