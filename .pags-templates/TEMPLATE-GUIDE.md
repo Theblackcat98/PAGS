@@ -17,6 +17,10 @@ Templates for a project using the PAGS project constitution and delivery loop.
 `WORK-ARCHIVE.md` and `DECISIONS-ARCHIVE.md` are created by agents the first
 time an entry is finished or replaced. They have no template.
 
+The installer also copies `scripts/pags-check.py` to `.pags/check.py` in every
+profile. It is a tool, not a template: rerunning the installer updates a
+changed copy after backing it up.
+
 ## Entry format
 
 Every record entry is one headline line, optionally followed by indented
@@ -46,6 +50,30 @@ decision names the one it `replaces`.
 Placeholders use `{{…}}` so that `grep -rn '{{' AGENTS.md README.md .pags/`
 finds every field that still needs filling. Examples live inside HTML
 comments so agents do not mistake them for real entries.
+
+## Checking the records
+
+`python3 .pags/check.py` (Python 3.10 or later, no dependencies) reads
+`AGENTS.md`, `README.md` and every `.pags/*.md` file, ignoring HTML comments.
+Run it before each commit and in CI. It exits 1 when it finds an error:
+
+- an ID used twice (archives included) or placed in the wrong file
+- a status outside its prefix's list, or a malformed date
+- a link, `replaces:` or `blocked-by:` that names a missing ID
+- a task that is not under an outcome or under Unplanned, or that is active
+  under an outcome that is not approved
+- a `[done]` task without `evidence:`
+- an exception past its end date or without `exit:`
+- `replaces: D-x` where D-x is not `[replaced]`, or a `[replaced]` decision
+  that nothing replaces
+- unfilled `{{placeholders}}` once the charter says `Status: accepted`
+
+It warns about unfilled placeholders while the charter is a draft, finished
+entries still in live files, active entries in an archive, and `[planned]`
+debt without an outcome link. `--strict` turns warnings into errors. A file
+that legitimately contains `{{`, such as a README documenting a template
+language, can opt out of the placeholder check with
+`<!-- pags: no-placeholder-check -->`.
 
 ## Adoption
 

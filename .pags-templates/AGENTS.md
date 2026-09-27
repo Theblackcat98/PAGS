@@ -18,7 +18,7 @@
 Entries are one line each, `- ID [status] summary -> links`, with optional
 indented `key: value` detail. List every entry with
 `grep -nE '^\s*- [RTDA]-[0-9]+' .pags/*.md`. Each file's header comment gives
-its statuses and rules.
+its statuses and rules, and `python3 .pags/check.py` enforces them.
 
 ## Loop
 
@@ -71,13 +71,14 @@ This is the only place commands are listed.
 - Format: `{{command}}`
 - Lint and typecheck: `{{command}}`
 - Run: `{{command}}`
+- Check records: `python3 .pags/check.py` (installed by PAGS; do not edit)
 
 Use these commands. Adding a second toolchain or config needs a decision.
 
 ## Done means
 
 - The change stays inside an approved outcome, or under Unplanned.
-- Every command above that applies passes.
+- Every command above that applies passes, including the records check.
 - Each bug fix has a regression test.
 - The records named in the change table are updated.
 - README matches actual behavior.

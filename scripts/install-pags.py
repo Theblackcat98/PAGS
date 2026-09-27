@@ -22,6 +22,9 @@ class Template:
     source: str
     destination: str
     summary: str
+    source_dir: Path = TEMPLATE_DIR
+    managed: bool = False
+    mode: int = 0o644
 
 
 CORE_TEMPLATES = (
@@ -35,6 +38,19 @@ CORE_TEMPLATES = (
 
 OPTIONAL_TEMPLATES = (
     Template("DESIGN.md", ".pags/DESIGN.md", "Durable user experience and design language"),
+)
+
+# Tool files PAGS owns. Every profile installs them, and a rerun updates a
+# changed copy after backing it up instead of keeping it.
+MANAGED_FILES = (
+    Template(
+        "pags-check.py",
+        ".pags/check.py",
+        "Record checker: python3 .pags/check.py",
+        source_dir=SCRIPT_DIR,
+        managed=True,
+        mode=0o755,
+    ),
 )
 
 MINIMAL_TEMPLATE_NAMES = {
@@ -139,7 +155,7 @@ class Printer:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="install-pags",
-        description="Install the PAGS project constitution and delivery system.",
+        description="Install PAGS (Portable Agent Guide System) into a repository.",
     )
     parser.add_argument("target", nargs="?", default=".", help="Target repository (default: current directory)")
     parser.add_argument(
@@ -291,7 +307,7 @@ def choose_templates(
         selected = list(CORE_TEMPLATES + OPTIONAL_TEMPLATES)
 
     if profile == "complete" or args.yes:
-        return selected
+        return selected + list(MANAGED_FILES)
 
     recommended = [template for template in OPTIONAL_TEMPLATES if optional_defaults(template, target, mode)]
     if recommended:
@@ -314,7 +330,7 @@ def choose_templates(
         )
         if include:
             selected.append(template)
-    return selected
+    return selected + list(MANAGED_FILES)
 
 
 def choose_conflict_policy(
@@ -324,7 +340,7 @@ def choose_conflict_policy(
 ) -> str:
     if args.conflict != "skip" or args.yes or not actions:
         return args.conflict
-    existing = [action for action in actions if action.destination.exists()]
+    existing = [action for action in actions if action.destination.exists() and not action.template.managed]
     if not existing:
         return "skip"
     printer.print()
@@ -356,10 +372,20 @@ def make_actions(
 ) -> list[Action]:
     actions: list[Action] = []
     for template in templates:
-        source = TEMPLATE_DIR / template.source
+        source = template.source_dir / template.source
         if not source.is_file():
             raise InstallerError(f"Missing template: {source}")
         destination = target / template.destination
+        if template.managed:
+            content = source.read_text(encoding="utf-8")
+            if not destination.exists():
+                status = "create"
+            elif destination.read_text(encoding="utf-8") == content:
+                status = "keep"
+            else:
+                status = "update"
+            actions.append(Action(template, destination, status, content))
+            continue
         if destination.exists():
             status = "replace" if conflict_policy == "backup" else "keep"
         else:
@@ -383,12 +409,15 @@ def print_plan(printer: Printer, actions: Sequence[Action], target: Path) -> Non
         elif action.status == "replace":
             marker = printer.paint("~", "yellow")
             detail = "back up and replace"
+        elif action.status == "update":
+            marker = printer.paint("~", "yellow")
+            detail = "back up and update to this PAGS version"
         else:
             marker = printer.paint("-", "dim")
             detail = "keep existing"
         printer.print(f"  {marker} {relative_destination(action):<{width}}  {printer.paint(detail, 'dim')}")
     create_count = sum(action.status == "create" for action in actions)
-    replace_count = sum(action.status == "replace" for action in actions)
+    replace_count = sum(action.status in {"replace", "update"} for action in actions)
     keep_count = sum(action.status == "keep" for action in actions)
     printer.print()
     printer.print(
@@ -407,9 +436,9 @@ def backup_path(target: Path) -> Path:
     return candidate
 
 
-def atomic_write(destination: Path, content: str) -> None:
+def atomic_write(destination: Path, content: str, default_mode: int = 0o644) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    mode = destination.stat().st_mode & 0o777 if destination.exists() else 0o644
+    mode = destination.stat().st_mode & 0o777 if destination.exists() else default_mode
     descriptor, temporary_name = tempfile.mkstemp(prefix=f".{destination.name}.", dir=destination.parent)
     temporary = Path(temporary_name)
     try:
@@ -423,8 +452,8 @@ def atomic_write(destination: Path, content: str) -> None:
 
 
 def install(actions: Sequence[Action], target: Path) -> tuple[Path | None, list[Path]]:
-    replace_actions = [action for action in actions if action.status == "replace"]
-    write_actions = [action for action in actions if action.status in {"create", "replace"}]
+    replace_actions = [action for action in actions if action.status in {"replace", "update"}]
+    write_actions = [action for action in actions if action.status in {"create", "replace", "update"}]
     backup = backup_path(target) if replace_actions else None
     if backup:
         for action in replace_actions:
@@ -434,7 +463,7 @@ def install(actions: Sequence[Action], target: Path) -> tuple[Path | None, list[
     written: list[Path] = []
     try:
         for action in write_actions:
-            atomic_write(action.destination, action.content)
+            atomic_write(action.destination, action.content, action.template.mode)
             written.append(action.destination)
     except OSError as error:
         raise InstallerError(f"Installation stopped after {len(written)} file(s): {error}") from error
@@ -448,12 +477,14 @@ def next_steps(printer: Printer, mode: str) -> None:
             "Inventory the current stack, commands, dependencies, and behavior.",
             "Describe what exists in ARCHITECTURE; mark unconfirmed facts (observed) or (unknown).",
             "Sort existing problems into known debt, outcomes, exceptions, or tasks.",
+            "Run python3 .pags/check.py before each commit and in CI.",
         )
     else:
         steps = (
             "Write the charter before selecting implementation details.",
             "Add three to seven outcomes to .pags/WORK.md and get them approved.",
-            "Fill every remaining {{placeholder}}: grep -rn '{{' AGENTS.md README.md .pags/",
+            "Fill every remaining {{placeholder}}; python3 .pags/check.py lists them.",
+            "Run python3 .pags/check.py before each commit and in CI.",
         )
     for index, step in enumerate(steps, start=1):
         printer.print(f"  {index}. {step}")
@@ -482,7 +513,7 @@ def run(args: argparse.Namespace) -> int:
     actions = make_actions(templates, target, project_name, today, conflict_policy)
     print_plan(printer, actions, target)
 
-    if not any(action.status in {"create", "replace"} for action in actions):
+    if not any(action.status in {"create", "replace", "update"} for action in actions):
         printer.print()
         printer.success("Selected PAGS documents are already present. Nothing to do.")
         return 0
