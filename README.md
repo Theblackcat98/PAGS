@@ -4,8 +4,8 @@ It is a small **project constitution plus delivery loop**:
 
 - `AGENTS.md` — operating instructions for agents.
 - `.pags/CHARTER.md` — identity, goals, non-goals, and principles.
-- `.pags/ROADMAP.md` — scope authorization and progress.
-- `.pags/DECISIONS.md` — append-only rationale and supersession history.
+- `.pags/WORK.md` — approved outcomes, current tasks, and the session handoff.
+- `.pags/DECISIONS.md` — append-only rationale, supersession history, and exceptions.
 - `README.md` — current user-facing contract.
 
 The design separates **why**, **what is allowed**, **why a choice was made**, and **what is currently true**.
@@ -17,47 +17,50 @@ To keep this separation useful, the roadmap should describe outcomes and milesto
 I would generalize this as a **Project Constitution + Delivery System**:
 
 ```text
-AGENTS.md              How agents work
-.pags/CHARTER.md       What the project is and why it exists; boundaries
-.pags/ROADMAP.md       Approved outcomes and milestones
-.pags/TASKS.md         Executable todos and current work
-.pags/DECISIONS.md     Why important choices were made
-.pags/ARCHITECTURE.md  What the system currently looks like
+AGENTS.md              How agents work: loop, change table, authority, commands
+.pags/CHARTER.md       What must not change casually
+.pags/WORK.md          Now block, approved outcomes, and tasks nested under them
+.pags/DECISIONS.md     Why choices were made; temporary exceptions
+.pags/ARCHITECTURE.md  What the system currently looks like; known debt
 README.md              How users operate it
 ```
 
-Optional documents should be added only when needed: `.pags/DESIGN.md`, `.pags/DEPENDENCIES.md`, `.pags/QUALITY.md`, and `.pags/EXCEPTIONS.md`.
+`.pags/DESIGN.md` is the only optional document. Finished entries move to
+`WORK-ARCHIVE.md` and `DECISIONS-ARCHIVE.md`, which agents create on first use.
 
 Each concern gets one source of truth:
 
-- Roadmap answers: **what outcomes are approved?**
-- Tasks answer: **what work is being done now?**
-- Decisions answer: **why was this chosen?**
+- Work answers: **what outcomes are approved, and what is being done now?**
+- Decisions answer: **why was this chosen, and which rules are bent for now?**
 - Architecture answers: **what exists today?**
 - Charter answers: **what must not be changed casually?**
 
-Use IDs such as `R-001` for roadmap outcomes, `T-001` for tasks, and `D-001` for decisions. Tasks should link to roadmap items and decisions.
+Entries are one headline line, `- ID [status] summary -> links`, with optional
+indented `key: value` detail. IDs are `R-` outcomes, `T-` tasks, `D-`
+decisions and exceptions, and `A-` known debt. Tasks sit indented under their
+outcome; a new decision names the one it `replaces`. Links point one way only.
 
 ## Recommended workflow
 
-1. Classify the change: bug, feature, refactor, dependency, architecture, security, or documentation.
-2. Read the applicable `AGENTS.md`, charter, architecture, roadmap, and relevant decisions.
-3. Check scope. If it conflicts with the charter or roadmap, propose a scope change instead of implementing it.
-4. Create a task with acceptance criteria, dependencies, and verification steps.
+1. Read the Now block in `.pags/WORK.md`.
+2. Classify the change and read only what its row in the AGENTS.md change table lists.
+3. Check scope. If the change is outside an approved outcome, add a `[proposed]` entry and ask the maintainer instead of implementing it.
+4. Create or update the task under its outcome, with `done-when:` criteria.
 5. Record a decision before expensive, difficult-to-reverse, dependency, public-interface, or architectural choices.
 6. Implement the smallest coherent change.
 7. Run the project’s format, lint, build, and test commands.
-8. Update the relevant documents.
-9. Mark the task verified only after evidence exists.
+8. Update the records the change table names, and archive finished entries.
+9. Mark the task done only with `evidence:` recorded.
+10. Rewrite the Now block for the next session.
 
 A useful rule is:
 
-- New feature: roadmap item + task; decision when needed.
+- New feature: approved WORK outcome + task; decision when needed.
 - Bug fix: task + regression test; decision only if behavior or architecture changes.
 - Dependency: decision + manifest/lockfile update.
 - Architecture change: decision + architecture update.
 - User-facing change: README or user documentation update.
-- Scope/non-goal change: charter + roadmap + decision.
+- Scope/non-goal change: charter + WORK outcome + decision, approved by the maintainer.
 
 ## Greenfield adoption
 
@@ -91,11 +94,15 @@ Do not treat existing code as automatically approved architecture.
 The key distinction is:
 
 ```text
-Current reality  -> ARCHITECTURE.md
-Intended future  -> CHARTER.md + ROADMAP.md
-Allowed exception -> TASKS.md
-Reason for choice -> DECISIONS.md
+Current reality    -> ARCHITECTURE.md
+Intended future    -> CHARTER.md + WORK.md
+Allowed exception  -> DECISIONS.md  [exception until DATE]
+Reason for choice  -> DECISIONS.md
 ```
+
+Existing problems in a brownfield repo map to one record each: accepted legacy
+to ARCHITECTURE known debt, planned migration to a WORK outcome, temporary
+exception to DECISIONS, and defect to a WORK task.
 
 I recommend formalizing this as a reusable template/bootstrap kit with separate greenfield and brownfield checklists.
 
@@ -107,15 +114,14 @@ adoption steps.
 
 The core templates are:
 
-- `AGENTS.md` — working instructions for contributors and agents
+- `AGENTS.md` — loop, change table, authority, commands, and definition of done
 - `README.md` — user-facing project documentation
-- `CHARTER.md` — mission, goals, non-goals, and durable constraints
-- `ROADMAP.md` — approved outcomes and milestones
-- `TASKS.md` — executable work and task status
-- `DECISIONS.md` — append-only decision history
-- `ARCHITECTURE.md` — current system structure and behavior
+- `CHARTER.md` — mission, goals, non-goals, principles, and constraints
+- `WORK.md` — Now block, outcomes, and tasks
+- `DECISIONS.md` — decisions, exceptions, and dependency reasons
+- `ARCHITECTURE.md` — current system structure and known debt
 
-Optional templates cover design, dependencies, quality, and exceptions.
+`DESIGN.md` is the only optional template.
 
 ## Guided installer
 
@@ -132,7 +138,7 @@ Omit the repository path to install into the current directory. The installer:
 - defaults to a minimal adoption profile;
 - suggests optional documents from project markers;
 - previews every create, replacement, and preserved file;
-- fills the project name, repository path, and current date;
+- fills the project name and the charter's creation date;
 - keeps existing files by default;
 - supports timestamped backups before explicit replacement; and
 - can be rerun without changing installed documents.
@@ -142,5 +148,32 @@ Use `--dry-run` to inspect the installation plan without changing files. Use
 and `--profile complete` for wider adoption. Run
 `./scripts/install-pags.py --help` for all options.
 
-The recommended next step is to validate the installer in one real greenfield
-and one real brownfield repository.
+## Template format decisions (2026-09-27)
+
+These were chosen by the maintainer to make the records cheaper for agents to
+read and easier for humans to scan:
+
+1. **Four records (plus optional DESIGN) instead of nine.** ROADMAP and TASKS merged into WORK.
+   EXCEPTIONS and DEPENDENCIES merged into DECISIONS (an exception is a
+   decision with an end date; versions stay in the lockfile). QUALITY merged
+   into AGENTS.md, which is now the only place commands are listed. CHARTER
+   and ARCHITECTURE stay separate to keep intended and observed apart.
+2. **Headline plus optional detail.** One line per entry works as the index,
+   so summary tables and two-way links are gone.
+3. **Archive files.** Finished entries move to `*-ARCHIVE.md` so live files
+   stay small.
+4. **Short bracketed statuses.** Tasks use five statuses instead of eight;
+   Verified and Done are merged, and done requires `evidence:`.
+
+Consequences: placeholders changed to `{{…}}` because `[...]` now marks
+status; examples moved into HTML comments; the installer fills the date only
+in the charter header and no longer writes the local repository path. The
+installed complete set dropped from about 3,000 to about 1,700 words, and a
+blank decision entry from about 140 words to a few lines.
+
+Open questions: where the records live (`.pags/` or `docs/pags/`), and
+whether IDs need a scheme that cannot collide across parallel branches.
+Follow-ups are tracked in the GitHub issues.
+
+The recommended next step is to validate the installer and the new format in
+one real greenfield and one real brownfield repository.

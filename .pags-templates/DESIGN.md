@@ -1,68 +1,34 @@
-# [PROJECT_NAME] Design
+# {{PROJECT_NAME}} design
 
-> Use this document when the project has a meaningful user experience, visual
-> language, interaction model, API shape, or other durable design contract.
+<!--
+Optional. Use it when the project has a user interface, API shape or other
+design contract that should stay consistent across sessions.
+Durable design choices are decisions: record them in DECISIONS.md and link
+them here.
+-->
 
-- **Status:** [DRAFT | CURRENT]
-- **Owner:** [OWNER_OR_TEAM]
-- **Last reviewed:** YYYY-MM-DD
+## Intent
 
-## Design intent
+{{The experience this project should create, in two or three sentences.}}
 
-[Describe the experience or interface this project should create and the
-principles that should guide it.]
+## Principles
 
-## Users and contexts
+- {{principle}}: {{how it shows up in the interface}}
 
-| Context | User need | Primary flow | Constraints |
-|---|---|---|---|
-| [CONTEXT] | [NEED] | [FLOW] | [CONSTRAINTS] |
+## Terms
 
-## Design principles
+- {{term}}: {{what it means to users; use it consistently}}
 
-- **[PRINCIPLE]:** [APPLICATION]
-- **[PRINCIPLE]:** [APPLICATION]
+## States
 
-## Information architecture
-
-[Describe the major concepts, navigation, hierarchy, and terminology.]
-
-## Interaction model
-
-- **Primary action:** [ACTION]
-- **Feedback:** [FEEDBACK]
-- **Loading:** [LOADING_STATE]
-- **Empty:** [EMPTY_STATE]
-- **Error:** [ERROR_STATE]
-- **Recovery:** [RECOVERY_PATH]
-- **Accessibility:** [ACCESSIBILITY_REQUIREMENTS]
+- Loading: {{behavior}}
+- Empty: {{behavior}}
+- Error: {{behavior and recovery path}}
 
 ## Visual language
 
-[Describe the reusable visual roles, tokens, typography, spacing, color,
-iconography, or equivalent conventions.]
+- {{token, type, spacing, color or icon convention}}
 
-## Content rules
+## Accessibility
 
-- [WRITING_OR_COPY_RULE]
-- [TERMINOLOGY_RULE]
-- [ERROR_MESSAGE_RULE]
-
-## States and edge cases
-
-| State | Required behavior | Related decision |
-|---|---|---|
-| [STATE] | [BEHAVIOR] | [D-XXX] |
-
-## Design debt
-
-| Observation | User impact | Planned treatment |
-|---|---|---|
-| [OBSERVATION] | [IMPACT] | [TREATMENT] |
-
-## Related records
-
-- `.pags/CHARTER.md`
-- `.pags/ROADMAP.md`
-- `.pags/ARCHITECTURE.md`
-- `.pags/DECISIONS.md`
+- {{requirement}}

@@ -10,7 +10,7 @@ import tempfile
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Sequence
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 PAGS_ROOT = SCRIPT_DIR.parent
@@ -28,25 +28,20 @@ CORE_TEMPLATES = (
     Template("AGENTS.md", "AGENTS.md", "Instructions for contributors and agents"),
     Template("README.md", "README.md", "User-facing project documentation"),
     Template("CHARTER.md", ".pags/CHARTER.md", "Identity, boundaries, and principles"),
-    Template("ROADMAP.md", ".pags/ROADMAP.md", "Approved outcomes and milestones"),
-    Template("TASKS.md", ".pags/TASKS.md", "Executable work and task status"),
-    Template("DECISIONS.md", ".pags/DECISIONS.md", "Durable rationale and supersession history"),
+    Template("WORK.md", ".pags/WORK.md", "Now block, approved outcomes, and tasks"),
+    Template("DECISIONS.md", ".pags/DECISIONS.md", "Decisions, exceptions, and dependency reasons"),
     Template("ARCHITECTURE.md", ".pags/ARCHITECTURE.md", "Current system structure and behavior"),
 )
 
 OPTIONAL_TEMPLATES = (
     Template("DESIGN.md", ".pags/DESIGN.md", "Durable user experience and design language"),
-    Template("DEPENDENCIES.md", ".pags/DEPENDENCIES.md", "Intentional dependency inventory and policy"),
-    Template("QUALITY.md", ".pags/QUALITY.md", "Test, CI, security, and verification policy"),
-    Template("EXCEPTIONS.md", ".pags/EXCEPTIONS.md", "Temporary deviations with exit conditions"),
 )
 
 MINIMAL_TEMPLATE_NAMES = {
     "AGENTS.md",
     "README.md",
     "CHARTER.md",
-    "ROADMAP.md",
-    "TASKS.md",
+    "WORK.md",
     "DECISIONS.md",
 }
 
@@ -80,28 +75,6 @@ PROJECT_DIRECTORY_MARKERS = {
     "test",
     "tests",
 }
-
-DEPENDENCY_MARKERS = {
-    "Cargo.lock",
-    "Cargo.toml",
-    "Gemfile.lock",
-    "go.sum",
-    "package-lock.json",
-    "pnpm-lock.yaml",
-    "poetry.lock",
-    "pyproject.toml",
-    "requirements.txt",
-    "yarn.lock",
-}
-
-QUALITY_MARKERS = {
-    ".github",
-    ".gitlab-ci.yml",
-    "Makefile",
-    "Taskfile.yml",
-    "tox.ini",
-}
-
 
 class InstallerError(Exception):
     pass
@@ -298,17 +271,7 @@ def choose_project_name(args: argparse.Namespace, target: Path, printer: Printer
     return project_name
 
 
-def marker_exists(target: Path, markers: Iterable[str]) -> bool:
-    return any((target / marker).exists() for marker in markers)
-
-
 def optional_defaults(template: Template, target: Path, mode: str) -> bool:
-    if template.source == "DEPENDENCIES.md":
-        return marker_exists(target, DEPENDENCY_MARKERS)
-    if template.source == "QUALITY.md":
-        return marker_exists(target, QUALITY_MARKERS)
-    if template.source == "EXCEPTIONS.md":
-        return mode == "brownfield"
     return False
 
 
@@ -379,9 +342,8 @@ def choose_conflict_policy(
 
 def render_template(source: Path, target: Path, project_name: str, today: str) -> str:
     content = source.read_text(encoding="utf-8")
-    content = content.replace("[PROJECT_NAME]", project_name)
-    content = content.replace("YYYY-MM-DD", today)
-    content = content.replace("[PATH]", str(target))
+    content = content.replace("{{PROJECT_NAME}}", project_name)
+    content = content.replace("{{DATE}}", today)
     return content
 
 
@@ -484,14 +446,14 @@ def next_steps(printer: Printer, mode: str) -> None:
     if mode == "brownfield":
         steps = (
             "Inventory the current stack, commands, dependencies, and behavior.",
-            "Mark architecture facts as observed, intended, or unknown.",
-            "Review existing violations and record owners and exit conditions.",
+            "Describe what exists in ARCHITECTURE; mark unconfirmed facts (observed) or (unknown).",
+            "Sort existing problems into known debt, outcomes, exceptions, or tasks.",
         )
     else:
         steps = (
             "Write the charter before selecting implementation details.",
-            "Define three to seven approved outcomes in the roadmap.",
-            "Replace all remaining [PLACEHOLDER] values with project-specific text.",
+            "Add three to seven outcomes to .pags/WORK.md and get them approved.",
+            "Fill every remaining {{placeholder}}: grep -rn '{{' AGENTS.md README.md .pags/",
         )
     for index, step in enumerate(steps, start=1):
         printer.print(f"  {index}. {step}")

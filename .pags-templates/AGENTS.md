@@ -1,95 +1,93 @@
-# AGENTS.md — [PROJECT_NAME]
+# AGENTS.md: {{PROJECT_NAME}}
 
-## Project snapshot
+{{One sentence describing the project.}}
 
-- **Purpose:** [One sentence describing the project.]
-- **Stack:** [Languages, frameworks, and important runtimes.]
-- **Repository root:** `[PATH]`
-- **User documentation:** `README.md`
-- **Task source:** `.pags/TASKS.md` or [EXTERNAL_TRACKER]
-- **Primary maintainer:** [OWNER_OR_TEAM]
+- Stack: {{languages, frameworks, runtimes}}
+- Maintainer: {{name or handle}}. Approves outcomes, decisions, exceptions and charter changes.
 
-## Read before working
+## Records
 
-Read the documents that apply to the change:
-
-1. `.pags/CHARTER.md`
-2. `.pags/ARCHITECTURE.md`, if it exists
-3. `.pags/ROADMAP.md`
-4. `.pags/DECISIONS.md`
-5. `.pags/DESIGN.md`, `.pags/QUALITY.md`, or other relevant documents
-6. The nearest `AGENTS.md` when working inside a subproject or legacy area
-
-For a brownfield project, read the architecture and known-debt sections before
-assuming that existing behavior is intentional.
-
-## Instruction precedence
-
-- The nearest applicable `AGENTS.md` controls local working instructions.
-- The charter defines product identity, boundaries, and non-goals.
-- The roadmap defines approved outcomes and scope.
-- Decisions explain the constraints created by important choices.
-- The architecture document describes the current implementation.
-- If a request conflicts with these documents, prepare a proposal instead of
-  bypassing them.
-
-## Working rules
-
-1. Classify the work as a bug fix, feature, refactor, dependency, architecture,
-   security, documentation, or maintenance change.
-2. Check scope before implementation.
-3. Create or update a task for work that is not a trivial, obvious correction.
-4. Record a decision before an expensive, difficult-to-reverse, public-interface,
-   dependency, architectural, or durable UX choice.
-5. Keep changes within the approved boundaries and existing project conventions.
-6. Prefer the smallest coherent change that solves the stated problem.
-7. Do not add dependencies, configuration, or abstractions without a stated need.
-8. Keep user documentation and implementation behavior synchronized.
-9. Never commit secrets, credentials, tokens, or private keys.
-
-## Change gates
-
-| Change | Required record |
+| File | Answers |
 |---|---|
-| New product capability | Roadmap item and task |
-| Important technical or product choice | Decision entry |
-| New dependency | Decision entry and dependency record |
-| Architecture or public interface change | Decision entry and architecture update |
-| User-visible behavior | User documentation update |
-| Temporary rule deviation | Exception record with an exit condition |
+| `.pags/CHARTER.md` | What must not change casually? |
+| `.pags/WORK.md` | What is approved, and what is being done now? |
+| `.pags/DECISIONS.md` | Why was this chosen? Which rules are bent for now? |
+| `.pags/ARCHITECTURE.md` | What exists today? Created once real structure exists. |
+| `README.md` | What do users rely on? |
 
-Bug fixes, tests, formatting, and documentation corrections may proceed without
-a new roadmap item when they do not change approved scope.
+Entries are one line each, `- ID [status] summary -> links`, with optional
+indented `key: value` detail. List every entry with
+`grep -nE '^\s*- [RTDA]-[0-9]+' .pags/*.md`. Each file's header comment gives
+its statuses and rules.
 
-## Project commands
+## Loop
 
-- **Install:** `[COMMAND]`
-- **Build:** `[COMMAND]`
-- **Test:** `[COMMAND]`
-- **Format:** `[COMMAND]`
-- **Lint/typecheck:** `[COMMAND]`
-- **Run:** `[COMMAND]`
-- **Release:** `[COMMAND]`
+1. Read the Now block in `.pags/WORK.md`.
+2. Find the change in the table below and read only what it lists.
+3. If the change is outside an approved outcome, add a `[proposed]` entry,
+   ask the maintainer, and stop until it is approved.
+4. Add or update the task under its outcome.
+5. Record a decision before a hard-to-reverse choice.
+6. Make the smallest coherent change.
+7. Run the checks under Commands until they pass.
+8. Update the records the table names. Move finished entries to the archive.
+9. Rewrite the Now block.
 
-Use the repository's existing commands. Do not invent a second toolchain or
-configuration for a change without a decision.
+## Changes
 
-## Definition of done
+| Change | Read first | Then update |
+|---|---|---|
+| New capability | Charter, Work | Outcome (maintainer approves), then a task |
+| Scope or non-goal change | Charter, Work | Proposal to the maintainer, then Charter, Work and a decision |
+| Architecture or public interface | Architecture, Decisions | Decision, Architecture |
+| New or removed dependency | Decisions | Decision ("Add dependency: …"), lockfile |
+| Refactor | Architecture, related decisions | Task; Architecture if structure changes |
+| Security | Decisions, Architecture | Task; a decision if a policy changes |
+| Bug fix | Architecture for the area | Task under Unplanned, regression test |
+| User-visible behavior | README | README, in the same change |
+| Temporary rule deviation | The rule being bent | Exception in Decisions (maintainer grants) |
+| Formatting, typos, doc fixes | Nothing extra | Nothing, if scope is unchanged |
 
-A change is complete when:
+If a row names a record that does not exist yet, create it from the template.
 
-- [ ] The requested behavior is implemented within scope.
-- [ ] Relevant automated tests pass.
-- [ ] Build, format, lint, and type checks pass when available.
-- [ ] Failure and edge cases are handled deliberately.
-- [ ] Required decision, task, exception, and documentation records are updated.
-- [ ] User-facing documentation matches actual behavior.
-- [ ] Verification evidence is recorded in the task or review artifact.
-- [ ] No unrelated changes or secrets are included.
+## Authority
 
-## Exceptions and escalation
+- Agents may propose outcomes and decisions, create and progress tasks inside
+  approved outcomes, and record evidence, observations and unknowns.
+- Only the maintainer may approve outcomes, accept decisions, grant or extend
+  exceptions, and change the charter.
+- When the maintainer approves something during a session, record it on the
+  entry as `approved-by: NAME YYYY-MM-DD` and carry on.
+- If a request conflicts with the charter or an accepted decision, write a
+  proposal instead of implementing it.
 
-Record temporary deviations in `.pags/EXCEPTIONS.md` when that document is in
-use. Include the reason, scope, owner, review date, and exit condition. Stop and
-ask for a decision when the charter, roadmap, or a durable decision would need
-to change.
+## Commands
+
+This is the only place commands are listed.
+
+- Install: `{{command}}`
+- Build: `{{command}}`
+- Test: `{{command}}`
+- Format: `{{command}}`
+- Lint and typecheck: `{{command}}`
+- Run: `{{command}}`
+
+Use these commands. Adding a second toolchain or config needs a decision.
+
+## Done means
+
+- The change stays inside an approved outcome, or under Unplanned.
+- Every command above that applies passes.
+- Each bug fix has a regression test.
+- The records named in the change table are updated.
+- README matches actual behavior.
+- The task has `evidence:` with the command run and its result.
+- No secrets and no unrelated changes are included.
+
+<!-- Add project-specific quality rules here, e.g. required CI checks or manual platform checks. -->
+
+## Local rules
+
+- The nearest `AGENTS.md` in a subdirectory overrides this one for that area.
+- Do not add dependencies, configuration or abstractions without a stated need.
+- Never commit secrets, credentials, tokens or private keys.

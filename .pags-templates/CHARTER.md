@@ -1,75 +1,34 @@
-# [PROJECT_NAME] Charter
+# {{PROJECT_NAME}} charter
 
-> Keep this document focused on durable identity, intent, and boundaries. Put implementation details in `.pags/ARCHITECTURE.md` and reversible work in the roadmap or task system.
+<!--
+What must not change casually. Keep it to one page.
+Only the maintainer edits this file. Record each change as a decision in
+DECISIONS.md and add a line under Changes.
+-->
 
-- **Status:** [DRAFT | ACCEPTED]
-- **Owner:** [OWNER_OR_TEAM]
-- **Last reviewed:** YYYY-MM-DD
+Status: draft <!-- draft | accepted -->
+Maintainer: {{name or handle; the person who approves scope, decisions and exceptions}}
 
 ## Mission
 
-[Describe the problem this project exists to solve and why it matters.]
-
-## Users and use cases
-
-### Primary users
-
-- [USER_OR_GROUP]
-
-### Primary use cases
-
-- [USE_CASE]
-- [USE_CASE]
-
-## Success
-
-The project succeeds when:
-
-- [SUCCESS_MEASURE]
-- [SUCCESS_MEASURE]
-- [SUCCESS_MEASURE]
+{{The problem this project solves, for whom, and why it matters. Two or three sentences.}}
 
 ## Goals
 
-- [GOAL]
-- [GOAL]
-- [GOAL]
+- {{a goal someone could check}}
 
 ## Non-goals
 
-The following are explicitly outside the project's scope unless added through
-the amendment process:
-
-- [NON_GOAL]
-- [NON_GOAL]
-- [NON_GOAL]
+- {{something this project will not do, even if asked}}
 
 ## Principles
 
-- **[PRINCIPLE]:** [How the principle affects decisions and implementation.]
-- **[PRINCIPLE]:** [How the principle affects decisions and implementation.]
+- {{principle}}: {{how it changes decisions}}
 
-## Durable constraints
+## Constraints
 
-- **Platform:** [SUPPORTED_PLATFORM_OR_NONE]
-- **Security and privacy:** [REQUIREMENT]
-- **Compatibility:** [REQUIREMENT]
-- **Operational constraints:** [REQUIREMENT]
-- **Legal or licensing constraints:** [REQUIREMENT]
+- {{platform, compatibility, security, privacy or licensing requirement}}
 
-Do not put temporary implementation choices in this section. Record those in
-`.pags/DECISIONS.md`.
+## Changes
 
-## Scope amendment
-
-1. Describe the proposed change and the problem it solves.
-2. Explain which goals, non-goals, constraints, or roadmap outcomes it affects.
-3. Record the decision in `.pags/DECISIONS.md` when the change is accepted.
-4. Update the roadmap and relevant architecture or user documentation.
-5. Record the approval owner and effective date.
-
-## Change log
-
-| Date | Change | Decision | Approved by |
-|---|---|---|---|
-| YYYY-MM-DD | Initial charter | — | [OWNER] |
+- {{DATE}} Charter created

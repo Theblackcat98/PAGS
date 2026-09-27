@@ -1,56 +1,35 @@
-# [PROJECT_NAME]
+# {{PROJECT_NAME}}
 
-[One-sentence description of the project and the problem it solves.]
+{{One sentence: what this project does and who it is for.}}
 
 ## Status
 
-[Development status, release status, or supported version.]
-
-## Features
-
-- [FEATURE]
-- [FEATURE]
-
-## Requirements
-
-- [RUNTIME]
-- [DEPENDENCY]
-- [PLATFORM]
+{{Development or release status, and the supported version.}}
 
 ## Quick start
 
 ```text
-[INSTALL_COMMAND]
-[RUN_COMMAND]
+{{install command}}
+{{run command}}
 ```
+
+## Features
+
+- {{feature}}
 
 ## Configuration
 
-| Variable or setting | Required | Default | Purpose |
-|---|---|---|---|
-| [NAME] | [YES_NO] | [DEFAULT] | [PURPOSE] |
+- `{{setting}}`: {{purpose}}. Default: {{default}}.
 
-## Commands
+## Limitations
 
-```text
-[TEST_COMMAND]
-[LINT_COMMAND]
-[BUILD_COMMAND]
-[FORMAT_COMMAND]
-```
+- {{known limitation or unsupported platform}}
 
-## Documentation
+## Contributing
 
-- [USER_DOCUMENTATION]
-- [.pags/CHARTER.md](.pags/CHARTER.md)
-- [.pags/ROADMAP.md](.pags/ROADMAP.md)
-- [.pags/ARCHITECTURE.md](.pags/ARCHITECTURE.md)
-- [.pags/DECISIONS.md](.pags/DECISIONS.md)
-
-## Support and limitations
-
-[Known limitations, compatibility boundaries, and support expectations.]
+Development commands and working rules are in [AGENTS.md](AGENTS.md).
+The charter, current work, decisions and architecture are in [.pags/](.pags/).
 
 ## License
 
-[LICENSE_OR_LICENSE_NOT_YET_DECIDED]
+{{license, or "not yet decided"}}
