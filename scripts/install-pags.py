@@ -155,7 +155,7 @@ class Printer:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="install-pags",
-        description="Install the PAGS project constitution and delivery system.",
+        description="Install PAGS (Portable Agent Guide System) into a repository.",
     )
     parser.add_argument("target", nargs="?", default=".", help="Target repository (default: current directory)")
     parser.add_argument(

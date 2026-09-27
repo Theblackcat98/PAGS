@@ -1,13 +1,13 @@
-# PAGS
+# PAGS: Portable Agent Guide System
 
-PAGS is an agent guide system: a small set of records, rules and tools for
-repositories where AI coding agents do much of the work. ("AGS" stands for
-Agent Guide System.) Agents forget between sessions, add scope nobody asked
-for, change architecture quietly and invent reasons for old code. PAGS gives a
-project one written answer to each question an agent should ask before
-changing anything, a loop that keeps those answers current, and a checker
-that fails when the records stop agreeing. It works for new (greenfield) and
-existing (brownfield) projects and needs only Python 3.10 or later.
+PAGS is a portable agent guide system: a small set of records, rules and tools
+for repositories where AI coding agents do much of the work. Agents forget
+between sessions, add scope nobody asked for, change architecture quietly and
+invent reasons for old code. PAGS gives a project one written answer to each
+question an agent should ask before changing anything, a loop that keeps those
+answers current, and a checker that fails when the records stop agreeing. It
+works for new (greenfield) and existing (brownfield) projects and needs only
+Python 3.10 or later.
 
 A visual guide to the design is published from `docs/index.html` at
 <https://theblackcat98.github.io/PAGS/> (GitHub Pages, served from the `/docs`
@@ -215,9 +215,12 @@ complete set dropped from about 3,000 to about 1,700 words.
 **2026-09-27: this README.** One file in two parts: user documentation first,
 design notes after, instead of a separate design document.
 
+**2026-09-27: the name.** PAGS stands for Portable Agent Guide System.
+"Portable" names what PAGS adds to the Veritas system it generalizes: the
+same records and loop, adoptable by any repository, new or existing.
+
 ### Open questions
 
-- What the "P" in PAGS stands for.
 - Where the records live: `.pags/` or `docs/pags/`
   ([#17](https://github.com/Theblackcat98/PAGS/issues/17)). The checker
   takes `--records-dir`, so either works.
