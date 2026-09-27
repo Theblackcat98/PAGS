@@ -321,7 +321,7 @@
       <h1>PAGS<em>.</em></h1>
       <p class="lede">A small set of records and rules for repositories where AI agents do much of the work.</p>
       <p class="sub">Agents forget between sessions. They add scope nobody asked for, change the architecture quietly, and make up reasons for old code. PAGS gives every project one written answer to each question an agent should ask before changing anything, plus a loop that keeps those answers current.</p>
-      <div class="status-note"><b>Design</b><span>This page shows the system PAGS is being built into. Parts of it, such as <code>pags check</code> and the install manifest, are planned work tracked in <a href="https://github.com/Theblackcat98/PAGS/issues/1">issue #1</a>.</span></div>
+      <div class="status-note"><b>Design</b><span>This page shows the system PAGS is being built into. Parts of it, such as the install manifest, are planned work tracked in <a href="https://github.com/Theblackcat98/PAGS/issues/1">issue #1</a>.</span></div>
     </div>
 
     <div class="tree" aria-label="A repository after installing PAGS">
@@ -742,7 +742,8 @@ flowchart TD
   F -->|No| NW["Create from template"]
   MS --> AP["Apply after you confirm"]
   NW --> AP
-  AP --> MF["Write .pags/manifest with version and template hashes"]
+  AP --> CK["Install .pags/check.py"]
+  CK --> MF["Write .pags/manifest with version and template hashes"]
   MF --> CL["Add CLAUDE.md that imports AGENTS.md"]
   CL --> NX(["Print next steps for this project type"])
 </pre>
@@ -756,7 +757,7 @@ flowchart TD
         <div class="sec-head">
           <span class="sec-num">§10</span>
           <h2>Rules that are checked, not only written</h2>
-          <p>Agents follow written advice less reliably as their context fills up. <code>pags check</code> is a small script that runs before each commit and in CI, and it fails the build when the records stop agreeing with each other.</p>
+          <p>Agents follow written advice less reliably as their context fills up. <code>pags check</code> is a small script, installed as <code>.pags/check.py</code>, that runs before each commit and in CI. It fails the build when the records stop agreeing with each other.</p>
         </div>
         <figure class="diagram">
           <div class="scroll">
@@ -773,22 +774,20 @@ flowchart LR
         </figure>
         <div class="checks">
           <ul class="checklist">
-            <li>Every ID is unique, and every ID mentioned exists</li>
+            <li>Every ID is unique, sits in its own file, and every ID mentioned exists</li>
             <li>Status values come from each record's allowed list</li>
+            <li>Tasks sit under an approved outcome or under Unplanned</li>
+            <li>Done tasks have evidence</li>
             <li>Replaced decisions have a newer decision pointing at them</li>
-            <li>No placeholders are left in accepted or current records</li>
+            <li>No placeholders are left once the charter is accepted</li>
             <li>No exception is past its end date</li>
-            <li>Index tables and reverse links are generated, not typed</li>
           </ul>
           <div class="sample">
-            <div class="sample-head"><span>$ python scripts/pags-check.py</span><span class="ex">Example</span></div>
-<pre><span class="ok">ok</span>   ids        41 records, all unique
-<span class="bad">fail</span> refs       T-022 names R-009, which does not exist
-<span class="ok">ok</span>   statuses   all values allowed
-<span class="bad">fail</span> expired    D-015 exception ended 2026-09-01
-<span class="ok">ok</span>   holes      no {{placeholders}} in accepted records
-
-<span class="c">2 problems. Fix the records, then commit again.</span></pre>
+            <div class="sample-head"><span>$ python3 .pags/check.py</span><span class="ex">Example</span></div>
+<pre>.pags/DECISIONS.md:9: <span class="bad">error</span>: D-015 exception ended 2026-09-01; resolve it or ask the maintainer
+.pags/WORK.md:14: <span class="bad">error</span>: T-022 links to R-009, which does not exist
+.pags/WORK.md:31: <span class="c">warning</span>: T-018 is [done]; move it to WORK-ARCHIVE.md
+<span class="bad">FAIL</span> 41 entries, 2 error(s), 1 warning(s)</pre>
           </div>
         </div>
       </section>
