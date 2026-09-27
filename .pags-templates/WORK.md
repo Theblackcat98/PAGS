@@ -11,7 +11,8 @@ under their outcome, so the link is the indentation.
 
 Outcome statuses: proposed, approved, doing, done, dropped
 Task statuses:    todo, doing, blocked, done, dropped
-Detail keys:      approved-by, done-when, evidence, blocked-by, revisit
+Required detail:  evidence, before a task is marked done
+Optional detail:  approved-by, done-when, blocked-by, revisit
 
 Rules:
 - Agents may add outcomes as [proposed]. Only the maintainer approves them.
