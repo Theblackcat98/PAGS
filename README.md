@@ -1,3 +1,7 @@
+A visual guide to the intended design is published from `docs/index.html` at
+<https://theblackcat98.github.io/PAGS/> (GitHub Pages, served from the `/docs`
+folder of `main`). Keep it in sync when the design changes.
+
 ## What PAGS is:
 
 It is a small **project constitution plus delivery loop**:
