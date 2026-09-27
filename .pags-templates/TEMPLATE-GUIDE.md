@@ -1,66 +1,85 @@
-# PAGS Template Set
+# PAGS template set
 
-This directory contains the reusable document templates for a project using the
-PAGS project constitution and delivery system.
+Templates for a project using the PAGS project constitution and delivery loop.
 
-## Core documents
+## Files
 
-| File | Copy to | Purpose |
+| Template | Installed at | Answers |
 |---|---|---|
-| `AGENTS.md` | `AGENTS.md` | Working instructions for contributors and agents |
-| `README.md` | `README.md` | User-facing project documentation |
-| `CHARTER.md` | `.pags/CHARTER.md` | Mission, goals, non-goals, and durable constraints |
-| `ROADMAP.md` | `.pags/ROADMAP.md` | Approved outcomes and milestones |
-| `TASKS.md` | `.pags/TASKS.md` | Executable work and task status |
-| `DECISIONS.md` | `.pags/DECISIONS.md` | Append-only decision history |
-| `ARCHITECTURE.md` | `.pags/ARCHITECTURE.md` | Current system structure and behavior |
+| `AGENTS.md` | `AGENTS.md` | How should I work here? Loop, change table, authority, commands, definition of done |
+| `README.md` | `README.md` | What do users rely on? |
+| `CHARTER.md` | `.pags/CHARTER.md` | What must not change casually? |
+| `WORK.md` | `.pags/WORK.md` | What is approved, and what is being done now? Now block, outcomes, tasks |
+| `DECISIONS.md` | `.pags/DECISIONS.md` | Why was this chosen? Which rules are bent for now? Includes exceptions and dependency reasons |
+| `ARCHITECTURE.md` | `.pags/ARCHITECTURE.md` | What exists today? Includes known debt |
+| `DESIGN.md` (optional) | `.pags/DESIGN.md` | What should the interface feel like? |
 
-## Optional documents
+`WORK-ARCHIVE.md` and `DECISIONS-ARCHIVE.md` are created by agents the first
+time an entry is finished or replaced. They have no template.
 
-Use these only when the project needs them:
+## Entry format
 
-| File | Copy to | Purpose |
+Every record entry is one headline line, optionally followed by indented
+`key: value` detail lines:
+
+```text
+- R-003 [approved] Offline edits sync when the network returns
+  approved-by: sam 2026-09-20
+  - T-014 [doing] Queue writes while offline -> D-012
+    done-when: queued writes survive an app restart
+- D-012 [accepted 2026-09-20] Use SQLite for the offline write queue -> R-003
+  why: writes must survive restarts on mobile; IndexedDB has no Node support
+  cost: adds a native build step
+```
+
+| Prefix | Record | Statuses |
 |---|---|---|
-| `DESIGN.md` | `.pags/DESIGN.md` | Durable user experience or interface language |
-| `DEPENDENCIES.md` | `.pags/DEPENDENCIES.md` | Intentional dependency inventory and update policy |
-| `QUALITY.md` | `.pags/QUALITY.md` | Test, CI, security, and verification policy |
-| `EXCEPTIONS.md` | `.pags/EXCEPTIONS.md` | Temporary deviations with owners and exit conditions |
+| `R-` | Outcome, in WORK | proposed, approved, doing, done, dropped |
+| `T-` | Task, in WORK | todo, doing, blocked, done, dropped |
+| `D-` | Decision or exception, in DECISIONS | proposed, accepted, rejected, replaced, exception until DATE, resolved |
+| `A-` | Known debt, in ARCHITECTURE | accepted, planned |
+
+The headline lines are the index. There are no summary tables to keep in
+sync, and links point one way: a task sits under its outcome, and a new
+decision names the one it `replaces`.
+
+Placeholders use `{{…}}` so that `grep -rn '{{' AGENTS.md README.md .pags/`
+finds every field that still needs filling. Examples live inside HTML
+comments so agents do not mistake them for real entries.
 
 ## Adoption
 
-From a PAGS checkout, use the guided installer before copying files manually:
+From a PAGS checkout, run the guided installer:
 
 ```text
 ./scripts/install-pags.py /path/to/repository
 ```
 
-The installer detects the project type, selects a minimal starting set by
-default, offers relevant optional documents, and previews conflicts. It keeps
-existing files unless replacement is explicitly selected; selected replacements
-are backed up first. Use `--dry-run` to inspect the plan without writing files.
-
 ### Greenfield
 
-1. Copy the core templates.
-2. Fill in the charter before selecting implementation details.
-3. Define a small set of roadmap outcomes.
-4. Replace the project commands and toolchain placeholders.
-5. Record only decisions that are expensive to reverse.
-6. Add optional documents when the project has a concrete need for them.
+1. Fill in the charter before choosing a stack.
+2. Add three to seven outcomes to WORK and get them approved.
+3. Fill in the commands in AGENTS.md as soon as they exist.
+4. Record only decisions that are expensive to reverse.
+5. Add ARCHITECTURE once the first real structure exists.
 
 ### Brownfield
 
-1. Inventory the existing system before editing it.
-2. Record observed behavior in the architecture document.
+1. Inventory the stack, commands, tests and deployment.
+2. Describe what exists in ARCHITECTURE, marking unconfirmed facts
+   `(observed)` or `(unknown)`.
 3. Establish a test and CI baseline.
-4. Separate accepted legacy behavior, planned migration, temporary exceptions,
-   and defects.
-5. Apply the new rules to new work first.
-6. Improve legacy areas incrementally rather than rewriting them to satisfy the
-   template.
+4. Backfill decisions only for important choices. Write `why: unknown` rather
+   than guessing.
+5. Sort each existing problem into one record:
+   - accepted legacy: ARCHITECTURE known debt `[accepted]`
+   - planned migration: an outcome in WORK, plus known debt `[planned]`
+   - temporary exception: DECISIONS `[exception until DATE]`
+   - defect: a task under Unplanned in WORK
+6. Apply the rules to new work first. Improve legacy areas gradually.
 
 ## Customization
 
-Keep the roles of the documents separate. A project may change the file layout
-or add domain-specific documents, but it should retain one source of truth for
-scope, tasks, decisions, current architecture, and user documentation.
+A project may rename sections or add domain-specific records, but it should
+keep one source of truth for scope, work, decisions, current architecture and
+user documentation.
