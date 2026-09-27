@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="A visual guide to PAGS: its records, the agent loop, who approves what, adoption paths, the installer and pags check.">
+<title>How PAGS Works</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  :root {
+    --bg: #F2F4F2;
+    --surface: #FFFFFF;
+    --surface-2: #E9EDEA;
+    --ink: #17202B;
+    --muted: #55606A;
+    --line: #D5DBD7;
+    --accent: #2B45B0;
+    --accent-soft: #E3E8FA;
+    --r: #2463BF; --r-soft: #E2ECFA;
+    --t: #127A62; --t-soft: #DDF2EB;
+    --d: #6E40BD; --d-soft: #EDE5FA;
+    --e: #97600C; --e-soft: #F7ECD9;
+    --ok: #127A62; --bad: #B3261E;
+    --shadow: 0 1px 2px rgba(23, 32, 43, .06), 0 8px 24px rgba(23, 32, 43, .06);
+    --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --body: "Public Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0E1317;
+      --surface: #151C22;
+      --surface-2: #1B242B;
+      --ink: #E5EAEE;
+      --muted: #9CA7B1;
+      --line: #28333C;
+      --accent: #93A5FF;
+      --accent-soft: #1C2448;
+      --r: #74A8F2; --r-soft: #16263D;
+      --t: #52C7A6; --t-soft: #11302A;
+      --d: #B492F2; --d-soft: #251A3D;
+      --e: #E2A94E; --e-soft: #33260F;
+      --ok: #52C7A6; --bad: #F2857D;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0E1317;
+    --surface: #151C22;
+    --surface-2: #1B242B;
+    --ink: #E5EAEE;
+    --muted: #9CA7B1;
+    --line: #28333C;
+    --accent: #93A5FF;
+    --accent-soft: #1C2448;
+    --r: #74A8F2; --r-soft: #16263D;
+    --t: #52C7A6; --t-soft: #11302A;
+    --d: #B492F2; --d-soft: #251A3D;
+    --e: #E2A94E; --e-soft: #33260F;
+    --ok: #52C7A6; --bad: #F2857D;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 16.5px;
+    line-height: 1.6;
+    padding-inline: 20px;
+    padding-block: 0 72px;
+  }
+  a { color: var(--accent); text-underline-offset: 3px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+  code, .mono { font-family: var(--mono); font-size: .86em; }
+  p code, li code, td code {
+    background: var(--surface-2);
+    padding: .08em .38em;
+    border-radius: 4px;
+  }
+  h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.12; margin: 0; }
+  h2 { font-size: clamp(1.7rem, 3.2vw, 2.25rem); font-weight: 700; letter-spacing: -.015em; }
+  h3 { font-size: 1.2rem; font-weight: 700; }
+  p { margin: 0; }
+
+  .wrap { max-width: 1160px; margin-inline: auto; }
+  .layout { display: grid; gap: 48px; }
+  @media (min-width: 1000px) {
+    .layout { grid-template-columns: 190px minmax(0, 1fr); }
+  }
+
+  /* Table of contents */
+  .toc { display: none; }
+  @media (min-width: 1000px) {
+    .toc {
+      display: block;
+      position: sticky;
+      top: calc(env(safe-area-inset-top, 0px) + 28px);
+      align-self: start;
+      padding-top: 8px;
+    }
+  }
+  .toc p { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin-bottom: 12px; }
+  .toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; border-left: 1px solid var(--line); }
+  .toc a {
+    display: grid; grid-template-columns: 26px 1fr; gap: 4px;
+    padding: 5px 0 5px 14px; margin-left: -1px;
+    border-left: 2px solid transparent;
+    color: var(--muted); text-decoration: none; font-size: .88rem; line-height: 1.35;
+  }
+  .toc a span { font-family: var(--mono); font-size: .78rem; color: var(--muted); opacity: .8; }
+  .toc a:hover { color: var(--ink); border-left-color: var(--line); }
+  .toc a.active { color: var(--ink); border-left-color: var(--accent); font-weight: 600; }
+
+  /* Hero */
+  header.hero {
+    display: grid; gap: 40px; align-items: center;
+    padding-block: 56px 48px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 56px;
+  }
+  @media (min-width: 900px) { header.hero { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); } }
+  .eyebrow {
+    font-size: .74rem; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600;
+  }
+  .hero h1 {
+    font-size: clamp(3.6rem, 9vw, 6.2rem);
+    font-weight: 800;
+    letter-spacing: -.045em;
+    line-height: .95;
+    margin-block: 14px 18px;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero .lede { font-size: 1.2rem; line-height: 1.5; max-width: 34ch; }
+  .hero .sub { color: var(--muted); margin-top: 16px; max-width: 52ch; }
+  .status-note {
+    display: flex; gap: 10px; align-items: flex-start;
+    margin-top: 24px; padding: 12px 14px;
+    background: var(--accent-soft); border-radius: 8px;
+    font-size: .9rem; max-width: 52ch;
+  }
+  .status-note b { font-family: var(--mono); font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); white-space: nowrap; padding-top: 2px; }
+
+  /* Repo tree card (hero visual) */
+  .tree {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .tree-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 16px; border-bottom: 1px solid var(--line);
+    font-family: var(--mono); font-size: .8rem; color: var(--muted);
+  }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); display: block; }
+  .tree ul { list-style: none; margin: 0; padding: 10px 0; }
+  .tree li {
+    display: grid; grid-template-columns: minmax(0, 13.5em) minmax(0, 1fr); gap: 14px;
+    padding: 7px 16px; align-items: baseline;
+    font-size: .9rem;
+  }
+  .tree li:hover { background: var(--surface-2); }
+  .tree .path { font-family: var(--mono); font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tree .path .dir { color: var(--muted); }
+  .tree .q { color: var(--muted); font-size: .88rem; line-height: 1.35; }
+  .tree li.opt .path { opacity: .72; }
+  .tree li.opt .q { font-style: italic; }
+  .tree .sep { padding: 10px 16px 4px; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; display: block; }
+  @media (max-width: 480px) {
+    .tree li { grid-template-columns: 1fr; gap: 0; }
+  }
+
+  /* Sections */
+  main > section { padding-block: 8px 64px; scroll-margin-top: 24px; }
+  .sec-head { display: grid; gap: 10px; margin-bottom: 24px; max-width: 70ch; }
+  .sec-num { font-family: var(--mono); font-size: .8rem; color: var(--accent); font-weight: 600; letter-spacing: .04em; }
+  .sec-head p { color: var(--muted); font-size: 1.05rem; }
+  .prose { max-width: 66ch; display: grid; gap: 14px; }
+
+  /* ID chips */
+  .id {
+    display: inline-block; font-family: var(--mono); font-size: .76rem; font-weight: 600;
+    padding: .1em .45em; border-radius: 5px; white-space: nowrap; line-height: 1.5;
+    vertical-align: .05em;
+  }
+  .id.r { color: var(--r); background: var(--r-soft); }
+  .id.t { color: var(--t); background: var(--t-soft); }
+  .id.d { color: var(--d); background: var(--d-soft); }
+  .id.e { color: var(--e); background: var(--e-soft); }
+
+  /* Problem strip */
+  .drift { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .drift div { padding: 18px 20px; border-top: 2px solid var(--ink); }
+  .drift h3 { font-size: 1.05rem; margin-bottom: 6px; }
+  .drift p { color: var(--muted); font-size: .95rem; }
+  .drift .fix { color: var(--ink); margin-top: 10px; font-size: .92rem; }
+  .drift .fix b { font-weight: 600; }
+
+  /* Document grid */
+  .docs { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+  .doc {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px 18px 16px; display: grid; gap: 8px; align-content: start;
+  }
+  .doc .file { font-family: var(--mono); font-size: .78rem; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+  .doc h3 { font-size: 1.14rem; }
+  .doc p { font-size: .92rem; color: var(--muted); }
+  .doc.optional { background: transparent; border-style: dashed; }
+  .group-label { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin: 28px 0 12px; }
+
+  /* Diagram frames */
+  figure.diagram {
+    margin: 28px 0 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .diagram .scroll { overflow-x: auto; padding: 24px 20px; }
+  .diagram pre.mermaid { margin: 0; background: transparent; text-align: center; min-width: 0; font-family: var(--body); }
+  .diagram figcaption {
+    border-top: 1px solid var(--line);
+    padding: 12px 20px; font-size: .88rem; color: var(--muted);
+    background: var(--surface-2);
+  }
+  .diagram figcaption b { color: var(--ink); font-weight: 600; }
+
+  .two { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .two figure.diagram { margin-top: 0; }
+  .life-title { display: flex; gap: 10px; align-items: center; padding: 14px 20px 0; font-family: var(--display); font-weight: 700; font-size: 1.05rem; }
+
+  /* Change table */
+  .table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); margin-top: 8px; }
+  table { border-collapse: collapse; width: 100%; min-width: 680px; font-size: .92rem; }
+  th, td { text-align: left; vertical-align: top; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  th { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--surface-2); }
+  tr:last-child td { border-bottom: 0; }
+  td:first-child { font-weight: 600; width: 24%; }
+  td .gate { display: inline-block; font-size: .72rem; font-weight: 600; letter-spacing: .04em; color: var(--accent); background: var(--accent-soft); padding: .05em .45em; border-radius: 4px; margin-left: 4px; white-space: nowrap; }
+
+  /* Rule callout */
+  .rule {
+    display: grid; gap: 14px; margin-top: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .rule div { padding: 18px 20px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+  .rule .who { font-family: var(--mono); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; margin-bottom: 8px; }
+  .rule .agent .who { color: var(--t); }
+  .rule .human .who { color: var(--d); }
+  .rule ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: .94rem; }
+
+  /* Truth labels */
+  .truth { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-top: 20px; }
+  .truth div { padding: 14px 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); }
+  .truth .tag { font-family: var(--mono); font-size: .76rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+  .truth .obs .tag { color: var(--r); }
+  .truth .int .tag { color: var(--t); }
+  .truth .unk .tag { color: var(--e); }
+  .truth p { font-size: .9rem; color: var(--muted); margin-top: 4px; }
+
+  /* Adoption paths */
+  .paths { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); }
+  .path-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+  .path-card h3 { margin-bottom: 4px; }
+  .path-card .hint { color: var(--muted); font-size: .9rem; margin-bottom: 14px; }
+  .path-card ol { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: .95rem; }
+
+  /* Code / file examples */
+  .sample { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .sample-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: .78rem; color: var(--muted); }
+  .sample-head .ex { font-family: var(--body); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; border: 1px solid var(--line); padding: 1px 7px; border-radius: 999px; }
+  .sample pre { margin: 0; padding: 16px 18px; overflow-x: auto; font-family: var(--mono); font-size: .82rem; line-height: 1.65; }
+  .sample .c { color: var(--muted); }
+  .sample .h { color: var(--accent); font-weight: 600; }
+  .sample .ok { color: var(--ok); font-weight: 600; }
+  .sample .bad { color: var(--bad); font-weight: 600; }
+
+  .checks { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); margin-top: 24px; }
+  .checklist { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .checklist li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; font-size: .95rem; }
+  .checklist li::before { content: "✓"; color: var(--ok); font-weight: 700; font-family: var(--mono); }
+
+  /* Compare */
+  .compare { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .compare > div { padding: 22px; border-radius: 12px; border: 1px solid var(--line); }
+  .compare .them { background: transparent; }
+  .compare .us { background: var(--surface); box-shadow: var(--shadow); }
+  .compare h3 { margin-bottom: 10px; }
+  .compare ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: .95rem; }
+
+  /* Open questions */
+  .open { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+  .open li { display: grid; grid-template-columns: 64px 1fr; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .open .num { font-family: var(--mono); font-size: .85rem; font-weight: 600; }
+  .open h3 { font-size: 1.02rem; margin-bottom: 4px; }
+  .open p { color: var(--muted); font-size: .93rem; }
+
+  footer { border-top: 1px solid var(--line); padding-top: 24px; color: var(--muted); font-size: .88rem; display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+</style>
+<style>
+  body { margin: 0; }
+  pre.mermaid:not([data-processed]) { color: var(--muted); font-family: var(--mono); font-size: .8rem; text-align: left; white-space: pre; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <div class="eyebrow">Project constitution + delivery loop</div>
+      <h1>PAGS<em>.</em></h1>
+      <p class="lede">A small set of records and rules for repositories where AI agents do much of the work.</p>
+      <p class="sub">Agents forget between sessions. They add scope nobody asked for, change the architecture quietly, and make up reasons for old code. PAGS gives every project one written answer to each question an agent should ask before changing anything, plus a loop that keeps those answers current.</p>
+      <div class="status-note"><b>Design</b><span>This page shows the system PAGS is being built into. Parts of it, such as <code>pags check</code> and the install manifest, are planned work tracked in <a href="https://github.com/Theblackcat98/PAGS/issues/1">issue #1</a>.</span></div>
+    </div>
+
+    <div class="tree" aria-label="A repository after installing PAGS">
+      <div class="tree-head"><span class="dots"><i></i><i></i><i></i></span><span>your-repo/</span></div>
+      <ul>
+        <li><span class="path">AGENTS.md</span><span class="q">How should I work here?</span></li>
+        <li><span class="path">README.md</span><span class="q">What do users rely on?</span></li>
+        <li><span class="path"><span class="dir">.pags/</span>CHARTER.md</span><span class="q">What must not change casually?</span></li>
+        <li><span class="path"><span class="dir">.pags/</span>WORK.md</span><span class="q">What is approved, and what is being done now?</span></li>
+        <li><span class="path"><span class="dir">.pags/</span>DECISIONS.md</span><span class="q">Why was this chosen? Which rules are bent?</span></li>
+        <li><span class="path"><span class="dir">.pags/</span>ARCHITECTURE.md</span><span class="q">What exists today?</span></li>
+        <li class="sep" aria-hidden="true">Added when needed</li>
+        <li class="opt"><span class="path"><span class="dir">.pags/</span>DESIGN.md</span><span class="q">What should the interface feel like?</span></li>
+        <li class="opt"><span class="path"><span class="dir">.pags/</span>*-ARCHIVE.md</span><span class="q">What was finished or replaced?</span></li>
+      </ul>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="Sections">
+      <p>On this page</p>
+      <ol>
+        <li><a href="#problem"><span>§1</span>The problem</a></li>
+        <li><a href="#records"><span>§2</span>Four records</a></li>
+        <li><a href="#links"><span>§3</span>One line per entry</a></li>
+        <li><a href="#loop"><span>§4</span>The agent loop</a></li>
+        <li><a href="#routing"><span>§5</span>What each change needs</a></li>
+        <li><a href="#authority"><span>§6</span>Who decides</a></li>
+        <li><a href="#lifecycle"><span>§7</span>Record lifecycles</a></li>
+        <li><a href="#adoption"><span>§8</span>Adopting PAGS</a></li>
+        <li><a href="#installer"><span>§9</span>The installer</a></li>
+        <li><a href="#check"><span>§10</span>pags check</a></li>
+        <li><a href="#handoff"><span>§11</span>Session handoff</a></li>
+        <li><a href="#position"><span>§12</span>Where PAGS fits</a></li>
+        <li><a href="#open"><span>§13</span>Still open</a></li>
+      </ol>
+    </nav>
+
+    <main>
+      <!-- §1 -->
+      <section id="problem">
+        <div class="sec-head">
+          <span class="sec-num">§1</span>
+          <h2>Agents drift in three predictable ways</h2>
+          <p>Each session starts with no memory of the last one. Without written records, small, reasonable-looking changes add up to a project nobody planned.</p>
+        </div>
+        <div class="drift">
+          <div>
+            <h3>Scope creep</h3>
+            <p>An agent adds a feature because it seemed useful. Nobody approved it, and now it has to be maintained.</p>
+            <p class="fix"><b>PAGS:</b> new capabilities need an approved roadmap item first.</p>
+          </div>
+          <div>
+            <h3>Silent architecture change</h3>
+            <p>A refactor swaps a pattern or adds a dependency. The next session cannot tell whether it was intended.</p>
+            <p class="fix"><b>PAGS:</b> hard-to-reverse choices get a decision record.</p>
+          </div>
+          <div>
+            <h3>Invented history</h3>
+            <p>In old code, agents guess why something was done and state the guess as fact.</p>
+            <p class="fix"><b>PAGS:</b> facts are marked observed, intended, or unknown.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- §2 -->
+      <section id="records">
+        <div class="sec-head">
+          <span class="sec-num">§2</span>
+          <h2>Four records, one question each</h2>
+          <p>Records that change at the same pace live together. Intent (the charter) and reality (the architecture) stay apart, because keeping them apart is what makes PAGS honest about existing code. IDs like <span class="id r">R-003</span> <span class="id t">T-014</span> <span class="id d">D-012</span> <span class="id e">A-001</span> let entries point at each other.</p>
+        </div>
+
+        <div class="docs">
+          <article class="doc">
+            <div class="file"><span>AGENTS.md</span></div>
+            <h3>How should I work here?</h3>
+            <p>The loop, the change table, who may approve what, the project commands, and the definition of done. The only place commands are written.</p>
+          </article>
+          <article class="doc">
+            <div class="file"><span>.pags/CHARTER.md</span></div>
+            <h3>What must not change casually?</h3>
+            <p>Mission, goals, non-goals, principles, constraints, and the maintainer's name. One page. Only the maintainer edits it.</p>
+          </article>
+          <article class="doc">
+            <div class="file"><span>.pags/WORK.md</span><span><span class="id r">R-</span> <span class="id t">T-</span></span></div>
+            <h3>What is approved, and what is being done now?</h3>
+            <p>The Now block, then outcomes with their tasks indented underneath, then unplanned fixes and ideas for later.</p>
+          </article>
+          <article class="doc">
+            <div class="file"><span>.pags/DECISIONS.md</span><span class="id d">D-</span></div>
+            <h3>Why was this chosen? Which rules are bent?</h3>
+            <p>Decisions, dependency reasons, and exceptions. An exception is a decision with an end date and an exit condition.</p>
+          </article>
+          <article class="doc">
+            <div class="file"><span>.pags/ARCHITECTURE.md</span><span class="id e">A-</span></div>
+            <h3>What exists today?</h3>
+            <p>Structure, flows, interfaces, invariants, and known debt. Unconfirmed facts are marked observed or unknown.</p>
+          </article>
+          <article class="doc">
+            <div class="file"><span>README.md</span></div>
+            <h3>What do users rely on?</h3>
+            <p>The user-facing contract. Any change to visible behavior updates it in the same change.</p>
+          </article>
+          <article class="doc optional">
+            <div class="file"><span>.pags/DESIGN.md</span><span>optional</span></div>
+            <h3>What should it feel like?</h3>
+            <p>Terms, states, visual language, and accessibility rules, for projects with an interface.</p>
+          </article>
+          <article class="doc optional">
+            <div class="file"><span>.pags/*-ARCHIVE.md</span><span>automatic</span></div>
+            <h3>What was finished or replaced?</h3>
+            <p>Done tasks, finished outcomes, and replaced decisions move here, so the live files stay short.</p>
+          </article>
+        </div>
+      </section>
+
+      <!-- §3 -->
+      <section id="links">
+        <div class="sec-head">
+          <span class="sec-num">§3</span>
+          <h2>One line per entry, detail only when needed</h2>
+          <p>Every entry starts with a headline line: ID, status in brackets, a summary, and links. Indented <code>key: value</code> lines add detail only where it earns its place. The headlines are the index, so there are no summary tables to keep in sync.</p>
+        </div>
+        <div class="two">
+          <div class="sample">
+            <div class="sample-head"><span>.pags/WORK.md</span><span class="ex">Example</span></div>
+<pre>- R-003 [approved] Offline edits sync when the network returns
+  approved-by: sam 2026-09-20
+  - T-014 [doing] Queue writes while offline -> D-012
+    done-when: queued writes survive an app restart
+  - T-015 [todo] Resolve conflicts on reconnect</pre>
+          </div>
+          <div class="sample">
+            <div class="sample-head"><span>.pags/DECISIONS.md</span><span class="ex">Example</span></div>
+<pre>- D-012 [accepted 2026-09-20] Use SQLite for the write queue -> R-003
+  why: writes must survive restarts on mobile
+  cost: adds a native build step
+  replaces: D-004
+- D-015 [exception until 2026-12-01] Skip e2e tests on Windows CI
+  exit: runner image ships WebView2</pre>
+          </div>
+        </div>
+        <div class="sample" style="margin-top:16px">
+          <div class="sample-head"><span>One search lists every entry</span></div>
+<pre>$ grep -nE '^\s*- [RTDA]-[0-9]+' .pags/*.md</pre>
+        </div>
+        <figure class="diagram">
+          <div class="scroll">
+<pre class="mermaid">
+flowchart RL
+  T["T-014 · task"] -->|indented under| R["R-003 · outcome"]
+  T -->|follows| D["D-012 · decision"]
+  D2["D-019 · newer decision"] -->|replaces| D
+  R -->|must fit within| C["CHARTER"]
+  D -->|reshapes| A["ARCHITECTURE"]
+  E["D-015 · exception"] -->|bends a rule in| AG["AGENTS.md"]
+</pre>
+          </div>
+          <figcaption><b>Links point one way.</b> A task's outcome is simply the entry it sits under. A newer decision names the one it replaces, and the old one only changes status to <code>[replaced]</code> before moving to the archive.</figcaption>
+        </figure>
+      </section>
+
+      <!-- §4 -->
+      <section id="loop">
+        <div class="sec-head">
+          <span class="sec-num">§4</span>
+          <h2>The loop every agent follows</h2>
+          <p>Each session goes through the same steps, from reading the handoff to writing the next one. The step that matters most is the scope check: work outside approved scope becomes a proposal and is not implemented.</p>
+        </div>
+        <figure class="diagram">
+          <div class="scroll">
+<pre class="mermaid">
+flowchart TD
+  S([Session starts]) --> N[Read the Now block in WORK.md]
+  N --> K[Classify the change]
+  K --> L[Look up its row in the change table]
+  L --> Q{Inside approved scope?}
+  Q -- No --> P[Write a proposal]
+  P --> H{Maintainer approves?}
+  H -- Not yet --> W([Record it in the Now block and stop])
+  H -- Yes --> REC[Record who approved and when]
+  REC --> T
+  Q -- Yes --> T[Create or update the task]
+  T --> DQ{Hard to reverse?}
+  DQ -- Yes --> D[Record a decision]
+  DQ -- No --> I
+  D --> I[Make the smallest coherent change]
+  I --> V[Run tests and pags check]
+  V --> VQ{All green?}
+  VQ -- No --> I
+  VQ -- Yes --> U[Update records and archive finished entries]
+  U --> NB[Rewrite the Now block]
+  NB --> END([Session ends])
+</pre>
+          </div>
+          <figcaption><b>Hard to reverse</b> means a new dependency, a public interface, an architectural pattern, a data format, or a lasting user-experience choice.</figcaption>
+        </figure>
+      </section>
+
+      <!-- §5 -->
+      <section id="routing">
+        <div class="sec-head">
+          <span class="sec-num">§5</span>
+          <h2>What each kind of change needs</h2>
+          <p>One table in <code>AGENTS.md</code> replaces separate rules for classifying, reading, and recording. An agent finds its row, reads only what that row lists, and updates only what it names.</p>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr><th>Change</th><th>Read first</th><th>Then update</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>New capability</td><td>Charter, Work</td><td>Outcome <span class="gate">approval</span>, then a task</td></tr>
+              <tr><td>Scope or non-goal change</td><td>Charter, Work</td><td>Proposal <span class="gate">approval</span>, then Charter, Work, and a decision</td></tr>
+              <tr><td>Architecture or public interface</td><td>Architecture, Decisions</td><td>Decision, Architecture</td></tr>
+              <tr><td>New or removed dependency</td><td>Decisions</td><td>Decision starting &ldquo;Add dependency:&rdquo;, lockfile</td></tr>
+              <tr><td>Refactor</td><td>Architecture, relevant decisions</td><td>Task; Architecture if the structure changes</td></tr>
+              <tr><td>Security change</td><td>Decisions, Architecture</td><td>Task; a decision if a policy changes</td></tr>
+              <tr><td>Bug fix</td><td>Architecture for the affected area</td><td>Task under Unplanned, regression test</td></tr>
+              <tr><td>User-visible behavior</td><td>README</td><td>README, in the same change</td></tr>
+              <tr><td>Temporary rule deviation</td><td>The rule being bent</td><td>Exception in Decisions, with end date and exit <span class="gate">approval</span></td></tr>
+              <tr><td>Maintenance, formatting, doc fixes</td><td>Nothing extra</td><td>Nothing new, as long as scope is unchanged</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:14px;color:var(--muted);font-size:.92rem;max-width:66ch">If a row names a record the project does not have yet, the agent creates it from the template. A minimal install never leaves an agent pointing at a file that does not exist.</p>
+      </section>
+
+      <!-- §6 -->
+      <section id="authority">
+        <div class="sec-head">
+          <span class="sec-num">§6</span>
+          <h2>Agents propose. A named person approves.</h2>
+          <p>This is the rule the rest of PAGS depends on. Approval should also be quick: when the maintainer says yes in the middle of a session, the agent records the approval and carries on.</p>
+        </div>
+        <div class="rule">
+          <div class="agent">
+            <div class="who">Agents may</div>
+            <ul>
+              <li>Draft roadmap outcomes and decisions as <em>proposed</em></li>
+              <li>Create and progress tasks inside approved scope</li>
+              <li>Record evidence, observations, and unknowns</li>
+              <li>Write the Now block for the next session</li>
+            </ul>
+          </div>
+          <div class="human">
+            <div class="who">Only the maintainer may</div>
+            <ul>
+              <li>Approve roadmap outcomes</li>
+              <li>Accept decisions</li>
+              <li>Grant exceptions</li>
+              <li>Change the charter</li>
+            </ul>
+          </div>
+        </div>
+        <figure class="diagram">
+          <div class="scroll">
+<pre class="mermaid">
+sequenceDiagram
+  participant A as Agent
+  participant R as Records
+  participant M as Maintainer
+  A->>R: Draft R-004 as proposed
+  A->>M: Share the proposal and ask for approval
+  M-->>A: Yes, approve R-004
+  A->>R: Mark R-004 approved, add approved-by: sam 2026-09-27
+  A->>R: Create T-022 for R-004
+  Note over A,M: The agent never marks its own proposal approved
+</pre>
+          </div>
+          <figcaption><b>Fast path.</b> A spoken or typed approval during a session counts. The agent records it and does not need a separate ceremony.</figcaption>
+        </figure>
+      </section>
+
+      <!-- §7 -->
+      <section id="lifecycle">
+        <div class="sec-head">
+          <span class="sec-num">§7</span>
+          <h2>How each record moves</h2>
+          <p>Each record type has a short, fixed list of statuses written in brackets. <code>pags check</code> rejects any status that is not on the list. Finished entries move to an archive file.</p>
+        </div>
+        <div class="two">
+          <figure class="diagram">
+            <div class="life-title"><span class="id r">R-</span> Outcome</div>
+            <div class="scroll">
+<pre class="mermaid">
+stateDiagram-v2
+  [*] --> proposed
+  proposed --> approved: maintainer approves
+  proposed --> dropped
+  approved --> doing
+  doing --> done: its tasks are done
+  approved --> dropped
+  done --> [*]: moved to archive
+</pre>
+            </div>
+          </figure>
+          <figure class="diagram">
+            <div class="life-title"><span class="id t">T-</span> Task</div>
+            <div class="scroll">
+<pre class="mermaid">
+stateDiagram-v2
+  [*] --> todo
+  todo --> doing
+  doing --> blocked
+  blocked --> doing
+  doing --> done: evidence recorded
+  todo --> dropped
+  done --> [*]: moved to archive
+</pre>
+            </div>
+          </figure>
+          <figure class="diagram">
+            <div class="life-title"><span class="id d">D-</span> Decision</div>
+            <div class="scroll">
+<pre class="mermaid">
+stateDiagram-v2
+  [*] --> proposed
+  proposed --> accepted: maintainer accepts
+  proposed --> rejected
+  accepted --> replaced: a newer decision replaces it
+  rejected --> [*]
+  replaced --> [*]: moved to archive
+</pre>
+            </div>
+          </figure>
+          <figure class="diagram">
+            <div class="life-title"><span class="id d">D-</span> Exception</div>
+            <div class="scroll">
+<pre class="mermaid">
+stateDiagram-v2
+  state "exception until date" as exception
+  [*] --> exception: maintainer grants it
+  exception --> resolved: exit condition met
+  exception --> exception: maintainer extends the date
+  resolved --> [*]: moved to archive
+</pre>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <!-- §8 -->
+      <section id="adoption">
+        <div class="sec-head">
+          <span class="sec-num">§8</span>
+          <h2>New projects and existing ones</h2>
+          <p>A new project starts with a one-page charter and grows its records as it grows. An existing project starts by describing what is there, without pretending anyone planned it.</p>
+        </div>
+        <div class="paths">
+          <div class="path-card">
+            <h3>Greenfield</h3>
+            <p class="hint">A new repository with little or no code.</p>
+            <ol>
+              <li>Write a one-page charter before choosing a stack.</li>
+              <li>Define three to seven roadmap outcomes.</li>
+              <li>Add the first few tasks.</li>
+              <li>Set build, test, lint, and format commands early.</li>
+              <li>Record only decisions that are expensive to reverse.</li>
+              <li>Start the architecture record once real structure exists.</li>
+            </ol>
+          </div>
+          <div class="path-card">
+            <h3>Brownfield</h3>
+            <p class="hint">An existing codebase with history and habits.</p>
+            <ol>
+              <li>Inventory the stack, commands, tests, and deployment.</li>
+              <li>Describe observed behavior in the architecture record.</li>
+              <li>Establish a test and CI baseline.</li>
+              <li>Backfill decisions only for important choices; mark unknown reasons as unknown.</li>
+              <li>Sort every existing problem into its record (below).</li>
+              <li>Apply the rules to new work first, then improve old areas gradually.</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="truth">
+          <div class="obs"><div class="tag">Observed</div><p>Seen in the code or its behavior today. Goes in ARCHITECTURE, marked (observed).</p></div>
+          <div class="int"><div class="tag">Intended</div><p>Someone with authority decided it. Goes in CHARTER, WORK, or DECISIONS.</p></div>
+          <div class="unk"><div class="tag">Unknown</div><p>Nobody knows why. Written as <code>why: unknown</code> and never guessed.</p></div>
+        </div>
+
+        <figure class="diagram">
+          <div class="scroll">
+<pre class="mermaid">
+flowchart LR
+  X["Existing code that breaks the new rules"] --> Q{"What is it?"}
+  Q -->|We accept it| L["Accepted legacy"] --> A1["ARCHITECTURE · A- accepted"]
+  Q -->|We plan to change it| M["Planned migration"] --> A2["WORK · R- outcome"]
+  Q -->|Allowed for now| E["Temporary exception"] --> A3["DECISIONS · exception until date"]
+  Q -->|It is simply wrong| B["Defect"] --> A4["WORK · T- under Unplanned"]
+</pre>
+          </div>
+          <figcaption><b>Sorting what is already there.</b> Every existing problem ends up in exactly one record, so nothing sits in an unexplained grey zone.</figcaption>
+        </figure>
+      </section>
+
+      <!-- §9 -->
+      <section id="installer">
+        <div class="sec-head">
+          <span class="sec-num">§9</span>
+          <h2>The installer</h2>
+          <p>One Python script with no dependencies sets PAGS up in any repository. It never overwrites your work silently: the default at every prompt is the safe choice, and it previews every change before writing.</p>
+        </div>
+        <figure class="diagram">
+          <div class="scroll">
+<pre class="mermaid">
+flowchart TD
+  A(["Run scripts/install-pags.py"]) --> B["Detect from commit count and non-doc files"]
+  B --> C{"New or existing project?"}
+  C -->|New| G["Greenfield starter set"]
+  C -->|Existing| BF["Brownfield set, including ARCHITECTURE"]
+  G --> P["Preview every file it will touch"]
+  BF --> P
+  P --> F{"AGENTS.md or README.md already there?"}
+  F -->|Yes| MS["Insert a marked PAGS section, keep the rest"]
+  F -->|No| NW["Create from template"]
+  MS --> AP["Apply after you confirm"]
+  NW --> AP
+  AP --> MF["Write .pags/manifest with version and template hashes"]
+  MF --> CL["Add CLAUDE.md that imports AGENTS.md"]
+  CL --> NX(["Print next steps for this project type"])
+</pre>
+          </div>
+          <figcaption><b>Safe by default.</b> Existing files are kept. Replacements are backed up first. Rerunning changes nothing unless a template changed, and the manifest shows exactly which files are out of date.</figcaption>
+        </figure>
+      </section>
+
+      <!-- §10 -->
+      <section id="check">
+        <div class="sec-head">
+          <span class="sec-num">§10</span>
+          <h2>Rules that are checked, not only written</h2>
+          <p>Agents follow written advice less reliably as their context fills up. <code>pags check</code> is a small script that runs before each commit and in CI, and it fails the build when the records stop agreeing with each other.</p>
+        </div>
+        <figure class="diagram">
+          <div class="scroll">
+<pre class="mermaid">
+flowchart LR
+  E["Edit code and records"] --> C["git commit"]
+  C --> H["pre-commit runs pags check"]
+  H --> CI["CI runs pags check and tests"]
+  CI --> M(["Merge"])
+  H -. fails .-> E
+  CI -. fails .-> E
+</pre>
+          </div>
+        </figure>
+        <div class="checks">
+          <ul class="checklist">
+            <li>Every ID is unique, and every ID mentioned exists</li>
+            <li>Status values come from each record's allowed list</li>
+            <li>Replaced decisions have a newer decision pointing at them</li>
+            <li>No placeholders are left in accepted or current records</li>
+            <li>No exception is past its end date</li>
+            <li>Index tables and reverse links are generated, not typed</li>
+          </ul>
+          <div class="sample">
+            <div class="sample-head"><span>$ python scripts/pags-check.py</span><span class="ex">Example</span></div>
+<pre><span class="ok">ok</span>   ids        41 records, all unique
+<span class="bad">fail</span> refs       T-022 names R-009, which does not exist
+<span class="ok">ok</span>   statuses   all values allowed
+<span class="bad">fail</span> expired    D-015 exception ended 2026-09-01
+<span class="ok">ok</span>   holes      no {{placeholders}} in accepted records
+
+<span class="c">2 problems. Fix the records, then commit again.</span></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- §11 -->
+      <section id="handoff">
+        <div class="sec-head">
+          <span class="sec-num">§11</span>
+          <h2>Every session leaves a note for the next one</h2>
+          <p>The Now block sits at the top of <code>WORK.md</code>. It is rewritten at the end of each session, not appended to, so it stays short enough for the next agent to read first.</p>
+        </div>
+        <div class="sample" style="max-width:720px">
+          <div class="sample-head"><span>.pags/WORK.md</span><span class="ex">Example</span></div>
+<pre><span class="h">## Now</span>
+
+- <b>Focus:</b> R-003 offline sync. T-014 is in progress.
+- <b>Last session:</b> Added the retry queue. Tests pass. D-012 accepted.
+- <b>Next:</b> Handle conflicts on reconnect (T-015).
+- <b>Waiting on:</b> Maintainer approval for the R-004 proposal.
+
+<span class="c">&lt;!-- Rewrite this block at the end of every session. --&gt;</span></pre>
+        </div>
+      </section>
+
+      <!-- §12 -->
+      <section id="position">
+        <div class="sec-head">
+          <span class="sec-num">§12</span>
+          <h2>Where PAGS fits</h2>
+          <p>Spec-driven tools help write a spec for each feature. PAGS governs the whole project over time, so the two work well together.</p>
+        </div>
+        <div class="compare">
+          <div class="them">
+            <h3>Per-feature spec tools</h3>
+            <ul>
+              <li>Examples: GitHub Spec Kit, Kiro</li>
+              <li>One spec, plan, and task list per feature</li>
+              <li>Focused on getting a single feature built well</li>
+              <li>Guidance files describe the product and the stack</li>
+            </ul>
+          </div>
+          <div class="us">
+            <h3>PAGS</h3>
+            <ul>
+              <li>One set of records for the whole life of a project</li>
+              <li>Honest about existing code: observed, intended, or unknown</li>
+              <li>Decisions are replaced, never rewritten</li>
+              <li>Exceptions expire unless someone renews them</li>
+              <li>Scope gates that agents cannot open themselves</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- §13 -->
+      <section id="open">
+        <div class="sec-head">
+          <span class="sec-num">§13</span>
+          <h2>Still being decided</h2>
+          <p>These parts of the design have options on the table but no decision yet. Each links to its issue.</p>
+        </div>
+        <ul class="open">
+          <li>
+            <a class="num" href="https://github.com/Theblackcat98/PAGS/issues/17">#17</a>
+            <div><h3>Where the records live</h3><p>A hidden <code>.pags/</code> folder is skipped by ripgrep and many agent search tools. A visible <code>docs/pags/</code> folder avoids that.</p></div>
+          </li>
+          <li>
+            <a class="num" href="https://github.com/Theblackcat98/PAGS/issues/13">#13</a>
+            <div><h3>IDs that cannot collide</h3><p>Two branches that each add a decision will both pick the next number. The archive keeps files short, but the ID scheme still needs a fix, or <code>pags check</code> needs to catch duplicates at merge.</p></div>
+          </li>
+          <li>
+            <a class="num" href="https://github.com/Theblackcat98/PAGS/issues/11">#11</a>
+            <div><h3>Where the approver is named</h3><p>The rule in §6 is settled in principle. The open question is whether the name goes in the charter, AGENTS.md, or a CODEOWNERS-style line.</p></div>
+          </li>
+        </ul>
+      </section>
+
+      <footer>
+        <span>PAGS · a portable project constitution and delivery loop</span>
+        <a href="https://github.com/Theblackcat98/PAGS">github.com/Theblackcat98/PAGS</a>
+      </footer>
+    </main>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+    if (!links.length || !('IntersectionObserver' in window)) return;
+    var byId = {};
+    links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a; });
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        links.forEach(function (a) { a.classList.remove('active'); });
+        var a = byId[entry.target.id];
+        if (a) a.classList.add('active');
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    Object.keys(byId).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+  })();
+</script>
+
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  const dark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: dark ? "dark" : "neutral",
+    fontFamily: '"Public Sans", "Segoe UI", system-ui, sans-serif',
+    flowchart: { htmlLabels: true, curve: "basis" },
+  });
+</script>
+</body>
+</html>
