@@ -113,7 +113,7 @@ class EnterDefaultsTest(InstallerTestCase):
         installed = sorted(p.relative_to(self.target).as_posix() for p in self.target.rglob("*") if p.is_file())
         self.assertEqual(
             installed,
-            [".pags/CHARTER.md", ".pags/DECISIONS.md", ".pags/WORK.md", ".pags/check.py", "AGENTS.md", "README.md"],
+            [".pags/CHARTER.md", ".pags/DECISIONS.md", ".pags/WORK.md", ".pags/check.py", ".pags/manifest.json", "AGENTS.md", "README.md"],
         )
 
     def test_menu_numbers_still_select_other_options(self) -> None:
@@ -160,6 +160,8 @@ class RenderedContentTest(InstallerTestCase):
             if path.name == "CHARTER.md":
                 self.assertIn(f"- {today} Charter created", content)
                 self.assertEqual(content.count(today), 1)
+            elif path.name == "manifest.json":
+                self.assertIn(f'"date": "{today}"', content)
             else:
                 self.assertNotIn(today, content, path)
 
@@ -175,6 +177,26 @@ class RenderedContentTest(InstallerTestCase):
             content = path.read_text(encoding="utf-8")
             self.assertNotIn("{{DATE}}", content, path)
             self.assertNotIn("{{PROJECT_NAME}}", content, path)
+
+    def test_manifest_is_written(self) -> None:
+        manifest_path = self.target / ".pags" / "manifest.json"
+        self.assertTrue(manifest_path.is_file())
+        import json
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        self.assertIn("version", manifest)
+        self.assertIn("date", manifest)
+        self.assertIn("profile", manifest)
+        self.assertEqual(manifest["profile"], "complete")
+        self.assertIn("files", manifest)
+
+        # Check that the hash is recorded for at least one template correctly
+        for path in self.installed:
+            rel_path = path.relative_to(self.target).as_posix()
+            if rel_path in manifest["files"]:
+                expected_hash = manifest["files"][rel_path]["hash"]
+                import hashlib
+                actual_hash = hashlib.sha256(path.read_text(encoding="utf-8").encode("utf-8")).hexdigest()
+                self.assertEqual(actual_hash, expected_hash, f"Hash mismatch for {rel_path}")
 
 
 class DetectionTest(InstallerTestCase):
