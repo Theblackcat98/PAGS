@@ -91,6 +91,8 @@ class InstallerTestCase(unittest.TestCase):
 class EnterDefaultsTest(InstallerTestCase):
     """#2: pressing Enter at every menu picks the first, recommended option."""
 
+
+
     def test_enter_keeps_existing_files_in_a_brownfield_repo(self) -> None:
         self.touch("README.md", "AGENTS.md", *(f"src/module_{n}.py" for n in range(10)))
         code, output, prompts = self.run_installer(
@@ -312,3 +314,46 @@ class CliTest(InstallerTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MergeConflictPolicyTest(InstallerTestCase):
+    def test_merge_appends_block_when_missing(self) -> None:
+        readme = self.target / "README.md"
+        readme.parent.mkdir(parents=True, exist_ok=True)
+        readme.write_text("# Old Project\n\nSome text.\n", encoding="utf-8")
+
+        self.run_process("--yes", "--conflict", "merge")
+
+        content = readme.read_text(encoding="utf-8")
+        self.assertIn("# Old Project", content)
+        self.assertIn("Some text.", content)
+        self.assertIn("<!-- pags:start -->", content)
+        self.assertIn("## Documentation", content)
+        self.assertIn("<!-- pags:end -->", content)
+        self.assertTrue(content.endswith("<!-- pags:end -->\n"))
+
+    def test_merge_updates_existing_block(self) -> None:
+        readme = self.target / "README.md"
+        readme.parent.mkdir(parents=True, exist_ok=True)
+        readme.write_text("# Old Project\n<!-- pags:start -->\nOld text\n<!-- pags:end -->\nFooter", encoding="utf-8")
+
+        self.run_process("--yes", "--conflict", "merge")
+
+        content = readme.read_text(encoding="utf-8")
+        self.assertIn("# Old Project", content)
+        self.assertNotIn("Old text", content)
+        self.assertIn("## Documentation", content)
+        self.assertIn("Footer", content)
+
+    def test_merge_falls_back_to_keep_when_identical(self) -> None:
+        self.run_process("--yes")
+
+        # Do it again so that it creates existing merged files.
+        self.run_process("--yes", "--conflict", "merge")
+
+        result = self.run_process("--yes", "--conflict", "merge", "--dry-run")
+
+        # Now it should be keep existing.
+        self.assertIn("keep existing", result.stdout)
+        self.assertNotIn("merge PAGS pointers", result.stdout)
+        self.assertIn("Nothing to do.", result.stdout)
