@@ -242,6 +242,12 @@ skipped.
 `.gitignore` with `*`, so git ignores it without the installer editing the
 project's own `.gitignore`.
 
+
+**2026-09-28: single-file record logs.** We use one file per record log (`WORK.md`, `DECISIONS.md`) instead of one file per record (like `R-001.md`). It avoids cluttering the directory and makes it easier for agents to read. ID collisions are caught by the checker after a merge.
+
+
+**2026-09-28: placeholder syntax.** We use `{{placeholder}}` unambiguously everywhere. We do not use `[...]` for placeholders, because brackets are reserved for statuses, which allows `pags check` to reliably distinguish unfilled fields from statuses.
+
 ### Open questions
 
 - Where the records live: `.pags/` or `docs/pags/`
@@ -258,11 +264,7 @@ The full list of follow-ups is tracked in
 
 ### Next steps
 
-1. Finish the installer tests
-   ([#9](https://github.com/Theblackcat98/PAGS/issues/9)). Menus, rendered
-   content, detection and the CLI edge cases are covered. Add CI that runs
-   `python3 -m unittest discover -s tests`.
-2. Pilot PAGS on one real greenfield and one real brownfield repository
+1. Pilot PAGS on one real greenfield and one real brownfield repository
    ([#24](https://github.com/Theblackcat98/PAGS/issues/24)), running the
    checker in each, and adjust the error and warning split from what it
    finds.

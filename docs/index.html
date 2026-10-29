@@ -711,7 +711,7 @@ stateDiagram-v2
 flowchart LR
   X["Existing code that breaks the new rules"] --> Q{"What is it?"}
   Q -->|We accept it| L["Accepted legacy"] --> A1["ARCHITECTURE · A- accepted"]
-  Q -->|We plan to change it| M["Planned migration"] --> A2["WORK · R- outcome"]
+  Q -->|We plan to change it| M["Planned migration"] --> A2["WORK · R- outcome + ARCHITECTURE · A- planned"]
   Q -->|Allowed for now| E["Temporary exception"] --> A3["DECISIONS · exception until date"]
   Q -->|It is simply wrong| B["Defect"] --> A4["WORK · T- under Unplanned"]
 </pre>
