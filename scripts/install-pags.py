@@ -438,6 +438,19 @@ def choose_conflict_policy(
     return ("skip", "backup")[choice]
 
 
+import re
+
+def extract_pags_section(filename: str, content: str) -> str:
+    if filename == "README.md":
+        match = re.search(r"## Contributing.*", content, flags=re.DOTALL)
+        if match:
+            return match.group(0)
+    elif filename == "AGENTS.md":
+        match = re.search(r"## Records.*", content, flags=re.DOTALL)
+        if match:
+            return match.group(0)
+    return content
+
 def render_template(source: Path, target: Path, project_name: str, today: str) -> str:
     content = source.read_text(encoding="utf-8")
     content = content.replace("{{PROJECT_NAME}}", project_name)
@@ -469,10 +482,19 @@ def make_actions(
             actions.append(Action(template, destination, status, content))
             continue
         if destination.exists():
-            status = "replace" if conflict_policy == "backup" else "keep"
+            if conflict_policy == "backup":
+                status = "replace"
+            elif template.source in {"AGENTS.md", "README.md"}:
+                status = "append"
+            else:
+                status = "keep"
         else:
             status = "create"
-        content = "" if status == "keep" else render_template(source, target, project_name, today)
+        if status == "append":
+            content = render_template(source, target, project_name, today)
+            content = extract_pags_section(template.source, content)
+        else:
+            content = "" if status == "keep" else render_template(source, target, project_name, today)
         actions.append(Action(template, destination, status, content))
     return actions
 
@@ -494,17 +516,21 @@ def print_plan(printer: Printer, actions: Sequence[Action], target: Path) -> Non
         elif action.status == "update":
             marker = printer.paint("~", "yellow")
             detail = "back up and update to this PAGS version"
+        elif action.status == "append":
+            marker = printer.paint("+", "green")
+            detail = "append PAGS section to existing file"
         else:
             marker = printer.paint("-", "dim")
             detail = "keep existing"
         printer.print(f"  {marker} {relative_destination(action):<{width}}  {printer.paint(detail, 'dim')}")
     create_count = sum(action.status == "create" for action in actions)
     replace_count = sum(action.status in {"replace", "update"} for action in actions)
+    append_count = sum(action.status == "append" for action in actions)
     keep_count = sum(action.status == "keep" for action in actions)
     printer.print()
     printer.print(
         f"  Target: {printer.paint(str(target), 'cyan')}  |  "
-        f"{create_count} create  {replace_count} replace  {keep_count} keep"
+        f"{create_count} create  {replace_count} replace  {append_count} append  {keep_count} keep"
     )
 
 
@@ -518,13 +544,17 @@ def backup_path(target: Path) -> Path:
     return candidate
 
 
-def atomic_write(destination: Path, content: str, default_mode: int = 0o644) -> None:
+def atomic_write(destination: Path, content: str, default_mode: int = 0o644, append: bool = False) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
     mode = destination.stat().st_mode & 0o777 if destination.exists() else default_mode
     descriptor, temporary_name = tempfile.mkstemp(prefix=f".{destination.name}.", dir=destination.parent)
     temporary = Path(temporary_name)
     try:
         with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
+            if append and destination.exists():
+                handle.write(destination.read_text(encoding="utf-8"))
+                if not content.startswith("\n"):
+                    handle.write("\n\n")
             handle.write(content)
         os.chmod(temporary, mode)
         os.replace(temporary, destination)
@@ -535,7 +565,7 @@ def atomic_write(destination: Path, content: str, default_mode: int = 0o644) -> 
 
 def install(actions: Sequence[Action], target: Path) -> tuple[Path | None, list[Path]]:
     replace_actions = [action for action in actions if action.status in {"replace", "update"}]
-    write_actions = [action for action in actions if action.status in {"create", "replace", "update"}]
+    write_actions = [action for action in actions if action.status in {"create", "replace", "update", "append"}]
     backup = backup_path(target) if replace_actions else None
     if backup:
         backup.mkdir(parents=True)
@@ -548,7 +578,7 @@ def install(actions: Sequence[Action], target: Path) -> tuple[Path | None, list[
     written: list[Path] = []
     try:
         for action in write_actions:
-            atomic_write(action.destination, action.content, action.template.mode)
+            atomic_write(action.destination, action.content, action.template.mode, append=(action.status == "append"))
             written.append(action.destination)
     except OSError as error:
         raise InstallerError(f"Installation stopped after {len(written)} file(s): {error}") from error

@@ -3,7 +3,7 @@
 {{One sentence describing the project.}}
 
 - Stack: {{languages, frameworks, runtimes}}
-- Maintainer: {{name or handle}}. Approves outcomes, decisions, exceptions and charter changes.
+- Maintainer: {{name or handle}} (human authority). Approves outcomes, decisions, exceptions and charter changes.
 
 ## Records
 

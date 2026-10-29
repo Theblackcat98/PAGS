@@ -97,8 +97,12 @@ class EnterDefaultsTest(InstallerTestCase):
             answers=lambda prompt: "y" if "Apply this plan" in prompt else ""
         )
         self.assertEqual(code, 0, output)
-        self.assertEqual((self.target / "README.md").read_text(), "x\n")
-        self.assertEqual((self.target / "AGENTS.md").read_text(), "x\n")
+        readme_content = (self.target / "README.md").read_text(encoding="utf-8")
+        agents_content = (self.target / "AGENTS.md").read_text(encoding="utf-8")
+        self.assertIn("x\n\n", readme_content)
+        self.assertIn("## Contributing", readme_content)
+        self.assertIn("x\n\n", agents_content)
+        self.assertIn("## Records", agents_content)
         self.assertIn("Detected: brownfield", output)
         self.assertIn("Inventory the current stack", output)
         self.assertTrue((self.target / ".pags" / "ARCHITECTURE.md").exists())
@@ -115,6 +119,15 @@ class EnterDefaultsTest(InstallerTestCase):
             installed,
             [".pags/CHARTER.md", ".pags/DECISIONS.md", ".pags/WORK.md", ".pags/check.py", "AGENTS.md", "README.md"],
         )
+
+    def test_append_pags_section(self) -> None:
+        self.touch("README.md")
+        (self.target / "README.md").write_text("# Existing project\n\nExisting docs.\n", encoding="utf-8")
+        code, output, _ = self.run_installer(answers=lambda prompt: "y" if "Apply" in prompt else "")
+        self.assertEqual(code, 0, output)
+        content = (self.target / "README.md").read_text(encoding="utf-8")
+        self.assertIn("Existing docs.", content)
+        self.assertIn("## Contributing", content)
 
     def test_menu_numbers_still_select_other_options(self) -> None:
         def answers(prompt: str) -> str:
