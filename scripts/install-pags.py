@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import os
 import shutil
 import subprocess
@@ -111,6 +113,21 @@ DOC_NAME_PREFIXES = (
 )
 DOC_SUFFIXES = {".adoc", ".markdown", ".md", ".rst", ".txt"}
 SKIPPED_DIRECTORIES = {"node_modules", "__pycache__", "venv"}
+
+
+def get_pags_version(pags_root: Path) -> str:
+    try:
+        result = subprocess.run(
+            ["git", "-C", str(pags_root), "rev-parse", "HEAD"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+        if result.returncode == 0:
+            return result.stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        pass
+    return "unknown"
 
 
 class InstallerError(Exception):
@@ -379,7 +396,7 @@ def choose_templates(
     mode: str,
     target: Path,
     printer: Printer,
-) -> list[Template]:
+) -> tuple[str, list[Template]]:
     profile = choose_profile(args, mode, printer)
     if profile == "minimal":
         names = MINIMAL_TEMPLATE_NAMES | ({"ARCHITECTURE.md"} if mode == "brownfield" else set())
@@ -390,7 +407,7 @@ def choose_templates(
         selected = list(CORE_TEMPLATES + OPTIONAL_TEMPLATES)
 
     if profile == "complete" or args.yes:
-        return selected + list(MANAGED_FILES)
+        return profile, selected + list(MANAGED_FILES)
 
     recommended = [template for template in OPTIONAL_TEMPLATES if optional_defaults(template, target, mode)]
     if recommended:
@@ -413,7 +430,7 @@ def choose_templates(
         )
         if include:
             selected.append(template)
-    return selected + list(MANAGED_FILES)
+    return profile, selected + list(MANAGED_FILES)
 
 
 def choose_conflict_policy(
@@ -472,7 +489,7 @@ def make_actions(
             status = "replace" if conflict_policy == "backup" else "keep"
         else:
             status = "create"
-        content = "" if status == "keep" else render_template(source, target, project_name, today)
+        content = render_template(source, target, project_name, today)
         actions.append(Action(template, destination, status, content))
     return actions
 
@@ -533,7 +550,13 @@ def atomic_write(destination: Path, content: str, default_mode: int = 0o644) -> 
             temporary.unlink()
 
 
-def install(actions: Sequence[Action], target: Path) -> tuple[Path | None, list[Path]]:
+def install(
+    actions: Sequence[Action],
+    target: Path,
+    profile: str,
+    today: str,
+    pags_version: str,
+) -> tuple[Path | None, list[Path]]:
     replace_actions = [action for action in actions if action.status in {"replace", "update"}]
     write_actions = [action for action in actions if action.status in {"create", "replace", "update"}]
     backup = backup_path(target) if replace_actions else None
@@ -550,6 +573,22 @@ def install(actions: Sequence[Action], target: Path) -> tuple[Path | None, list[
         for action in write_actions:
             atomic_write(action.destination, action.content, action.template.mode)
             written.append(action.destination)
+
+        manifest = {
+            "version": pags_version,
+            "date": today,
+            "profile": profile,
+            "files": {
+                action.template.destination: {
+                    "template": action.template.source,
+                    "hash": hashlib.sha256(action.content.encode("utf-8")).hexdigest(),
+                }
+                for action in actions
+            },
+        }
+        manifest_path = target / ".pags/manifest.json"
+        atomic_write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        written.append(manifest_path)
     except OSError as error:
         raise InstallerError(f"Installation stopped after {len(written)} file(s): {error}") from error
     return backup, written
@@ -593,7 +632,7 @@ def run(args: argparse.Namespace) -> int:
     printer.banner(args.dry_run)
     mode = choose_mode(args, target, printer)
     project_name = choose_project_name(args, target, printer)
-    templates = choose_templates(args, mode, target, printer)
+    profile, templates = choose_templates(args, mode, target, printer)
     today = datetime.now().date().isoformat()
     initial_actions = make_actions(templates, target, project_name, today, "skip")
     conflict_policy = choose_conflict_policy(args, initial_actions, printer)
@@ -615,7 +654,8 @@ def run(args: argparse.Namespace) -> int:
         printer.success("Dry run complete. No files were changed.")
         return 0
 
-    backup, written = install(actions, target)
+    pags_version = get_pags_version(PAGS_ROOT)
+    backup, written = install(actions, target, profile, today, pags_version)
     if backup:
         printer.warning(f"Backup created: {backup.relative_to(target)}/ (ignored by git; delete it when done)")
     for destination in written:
