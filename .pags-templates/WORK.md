@@ -12,14 +12,16 @@ under their outcome, so the link is the indentation.
 Outcome statuses: proposed, approved, doing, done, dropped
 Task statuses:    todo, doing, blocked, done, dropped
 Required detail:  evidence, before a task is marked done
-Optional detail:  approved-by, done-when, blocked-by, revisit
+Optional detail:  approved-by, done-when, blocked-by, revisit, tested-commit, evidence-artifact
 
 Rules:
 - Agents may add outcomes as [proposed]. Only the maintainer approves them.
   Record an in-session approval as `approved-by: NAME YYYY-MM-DD`.
 - Work on a task only when its outcome is [approved] or [doing], or when it
   sits under Unplanned.
-- Mark a task done only with `evidence:` (the command run and its result).
+- Mark a task done only with `evidence:`. This is an evidence contract with an unambiguous state (PASS, FAIL, NOT RUN, INCONCLUSIVE) followed by a description of the exact command or action.
+  - Examples: `evidence: PASS pytest tests/`, `evidence: FAIL UI glitch on Safari`, `evidence: NOT RUN skipped due to missing API key`, `evidence: INCONCLUSIVE manual test flaky`.
+  - For high-risk changes, add `tested-commit: COMMIT_HASH` or `evidence-artifact: path/to/logs/or/screenshot.png`.
 - Move done and dropped entries to WORK-ARCHIVE.md, newest first. Create that
   file if it does not exist.
 - Rewrite the Now block at the end of every session. Do not append to it.

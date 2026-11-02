@@ -103,7 +103,8 @@ Use these commands. Adding a second toolchain or config needs a decision.
 - Each bug fix has a regression test.
 - The records named in the change table are updated.
 - README matches actual behavior.
-- The task has `evidence:` with the command run and its result.
+- The task has `evidence:` with an unambiguous state (PASS, FAIL, NOT RUN, INCONCLUSIVE) and the command run.
+  - Note: Static record validation is not proof of behavioral verification. Execution evidence must come from an actual test or verification process.
 - No secrets and no unrelated changes are included.
 
 <!-- Add project-specific quality rules here, e.g. required CI checks or manual platform checks. -->
