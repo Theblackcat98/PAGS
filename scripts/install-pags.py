@@ -41,6 +41,7 @@ CORE_TEMPLATES = (
 
 OPTIONAL_TEMPLATES = (
     Template("DESIGN.md", ".pags/DESIGN.md", "Durable user experience and design language"),
+    Template("VERIFICATION.md", ".pags/VERIFICATION.md", "Repeatable instructions for verifying real application behavior"),
 )
 
 # Tool files PAGS owns. Every profile installs them, and a rerun updates a

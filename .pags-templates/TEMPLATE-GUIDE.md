@@ -13,6 +13,7 @@ Templates for a project using the PAGS project constitution and delivery loop.
 | `DECISIONS.md` | `.pags/DECISIONS.md` | Why was this chosen? Which rules are bent for now? Includes exceptions and dependency reasons |
 | `ARCHITECTURE.md` | `.pags/ARCHITECTURE.md` | What exists today? Includes known debt |
 | `DESIGN.md` (optional) | `.pags/DESIGN.md` | What should the interface feel like? |
+| `VERIFICATION.md` (optional) | `.pags/VERIFICATION.md` | How to verify real application behavior? |
 
 `WORK-ARCHIVE.md` and `DECISIONS-ARCHIVE.md` are created by agents the first
 time an entry is finished or replaced. They have no template.
