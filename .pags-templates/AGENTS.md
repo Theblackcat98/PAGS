@@ -52,14 +52,10 @@ If a row names a record that does not exist yet, create it from the template.
 
 ## Authority
 
-- Agents may propose outcomes and decisions, create and progress tasks inside
-  approved outcomes, and record evidence, observations and unknowns.
-- Only the maintainer may approve outcomes, accept decisions, grant or extend
-  exceptions, and change the charter.
-- When the maintainer approves something during a session, record it on the
-  entry as `approved-by: NAME YYYY-MM-DD` and carry on.
-- If a request conflicts with the charter or an accepted decision, write a
-  proposal instead of implementing it.
+- Agents may create proposals (`proposed` status) and record evidence.
+- Only a named maintainer (or maintainers) may approve roadmap items, accept decisions, grant exceptions, or change the charter.
+- **Fast path:** when the maintainer approves something in-session ("yes, go ahead with D-012"), the agent records that approval (who, when, where) and carries on without a separate ceremony.
+- If a request conflicts with the charter or an accepted decision, prepare a proposal instead of bypassing them.
 
 ## Commands
 
