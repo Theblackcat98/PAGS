@@ -262,8 +262,28 @@ class Checker:
 
     def check_task(self, entry: Entry, archived: bool) -> None:
         path, line, raw_id = entry.path, entry.line, entry.raw_id
-        if entry.status == "done" and "evidence" not in entry.details:
-            self.error(path, line, f"{raw_id} is [done] without `evidence:`")
+        if entry.status == "done":
+            if "evidence" not in entry.details:
+                self.error(path, line, f"{raw_id} is [done] without `evidence:`")
+            else:
+                evidence_text, evidence_line = entry.details["evidence"]
+                parts = evidence_text.split(" ", 1)
+                state = parts[0]
+                if state not in {"PASS", "FAIL", "NOT", "INCONCLUSIVE"} or (state == "NOT" and (len(parts) < 2 or not parts[1].startswith("RUN"))):
+                    self.error(path, evidence_line, f"{raw_id} evidence must begin with PASS, FAIL, NOT RUN, or INCONCLUSIVE")
+                elif state == "NOT":
+                    desc = parts[1][3:].strip()
+                    if not desc:
+                        self.error(path, evidence_line, f"{raw_id} evidence requires a description after NOT RUN")
+                elif len(parts) < 2 or not parts[1].strip():
+                    self.error(path, evidence_line, f"{raw_id} evidence requires a description after {state}")
+
+            if "evidence-artifact" in entry.details:
+                artifact, artifact_line = entry.details["evidence-artifact"]
+                if not artifact.startswith(("http://", "https://")):
+                    target = self.root / artifact
+                    if not target.exists():
+                        self.error(path, artifact_line, f"{raw_id} evidence-artifact '{artifact}' does not exist")
         if archived:
             return
         parent = entry.parent

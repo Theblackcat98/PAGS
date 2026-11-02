@@ -129,7 +129,7 @@ class ValidRecordsTest(RecordsTestCase):
         self.assertEqual(code, 0, output)
 
     def test_archive_entries_count_for_links_and_uniqueness(self) -> None:
-        self.write("WORK-ARCHIVE.md", "# Archive\n\n- T-009 [done] Old task\n  evidence: make test passed\n")
+        self.write("WORK-ARCHIVE.md", "# Archive\n\n- T-009 [done] Old task\n  evidence: PASS make test passed\n")
         self.edit("DECISIONS.md", "-> R-001\n", "-> R-001, T-009\n")
         code, output = self.check()
         self.assertEqual(code, 0, output)
@@ -195,6 +195,22 @@ class ErrorTest(RecordsTestCase):
         self.edit("WORK.md", "T-002 [todo]", "T-002 [done]")
         self.assertProblem("error", "T-002 is [done] without `evidence:`")
 
+    def test_evidence_missing_description(self) -> None:
+        self.edit("WORK.md", "T-002 [todo] Add PDF export", "T-002 [done] Add PDF export\n    evidence: PASS")
+        self.assertProblem("error", "T-002 evidence requires a description after PASS")
+
+    def test_evidence_invalid_state(self) -> None:
+        self.edit("WORK.md", "T-002 [todo] Add PDF export", "T-002 [done] Add PDF export\n    evidence: OK it works")
+        self.assertProblem("error", "T-002 evidence must begin with PASS, FAIL, NOT RUN, or INCONCLUSIVE")
+
+    def test_evidence_not_run_missing_description(self) -> None:
+        self.edit("WORK.md", "T-002 [todo] Add PDF export", "T-002 [done] Add PDF export\n    evidence: NOT RUN")
+        self.assertProblem("error", "T-002 evidence requires a description after NOT RUN")
+
+    def test_evidence_artifact_broken(self) -> None:
+        self.edit("WORK.md", "T-002 [todo] Add PDF export", "T-002 [done] Add PDF export\n    evidence: PASS manual test\n    evidence-artifact: missing.png")
+        self.assertProblem("error", "T-002 evidence-artifact 'missing.png' does not exist")
+
     def test_expired_exception(self) -> None:
         self.edit("DECISIONS.md", "until 2026-12-01", "until 2026-09-01")
         self.assertProblem("error", "D-002 exception ended 2026-09-01")
@@ -223,7 +239,7 @@ class ErrorTest(RecordsTestCase):
 
 class WarningTest(RecordsTestCase):
     def test_finished_entry_left_in_live_file(self) -> None:
-        self.edit("WORK.md", "T-002 [todo] Add PDF export", "T-002 [done] Add PDF export\n    evidence: ok")
+        self.edit("WORK.md", "T-002 [todo] Add PDF export", "T-002 [done] Add PDF export\n    evidence: PASS test")
         code, output = self.check()
         self.assertEqual(code, 0, output)
         self.assertIn("warning: T-002 is [done]; move it to WORK-ARCHIVE.md", output)

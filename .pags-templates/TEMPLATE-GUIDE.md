@@ -62,11 +62,13 @@ Run it before each commit and in CI. It exits 1 when it finds an error:
 - a link, `replaces:` or `blocked-by:` that names a missing ID
 - a task that is not under an outcome or under Unplanned, or that is active
   under an outcome that is not approved
-- a `[done]` task without `evidence:`
+- a `[done]` task without `evidence:`, or with an invalid evidence state (must be PASS, FAIL, NOT RUN, or INCONCLUSIVE), or a broken local `evidence-artifact`
 - an exception past its end date or without `exit:`
 - `replaces: D-x` where D-x is not `[replaced]`, or a `[replaced]` decision
   that nothing replaces
 - unfilled `{{placeholders}}` once the charter says `Status: accepted`
+
+Note: Static validation of `evidence:` states does not prove behavioral verification. The evidence string merely records the outcome of an execution process.
 
 It warns about unfilled placeholders while the charter is a draft, finished
 entries still in live files, active entries in an archive, and `[planned]`
