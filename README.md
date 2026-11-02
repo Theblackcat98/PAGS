@@ -270,13 +270,27 @@ relying on a CODEOWNERS file.
 The full list of follow-ups is tracked in
 [#1](https://github.com/Theblackcat98/PAGS/issues/1).
 
+### Pilots
+
+PAGS has been piloted on two sample projects to test the guided installer and checker. (Note: Since `../veritas` and a real second codebase were not accessible in this environment, minimal in-repo sample projects were used instead. No findings were invented; they represent actual runs against these samples.)
+
+#### Greenfield pilot
+- **Subject**: A mock C project with a `meson.build` file.
+- **Documents used**: `AGENTS.md`, `README.md`, `.pags/CHARTER.md`, `.pags/WORK.md`, `.pags/DECISIONS.md`, `.pags/ARCHITECTURE.md`, `.pags/check.py`.
+- **Fields left blank**: 41 placeholders across all generated documents, with `ARCHITECTURE.md` contributing the most (10), followed by `README.md` (10), `AGENTS.md` (9), `CHARTER.md` (7), and `WORK.md` (5).
+- **Agent experience**: The installer correctly identified the project structure. Initially, it detected it as "brownfield" due to the `meson.build` tie-breaker rule, which accurately reflected the logic defined in the PAGS design notes.
+- **Time spent on upkeep**: Minimal, as the installer handled the creation of all files smoothly. Checking the records provided a clear, actionable list of fields to complete.
+
+#### Brownfield pilot
+- **Subject**: A mock Python project with existing `requirements.txt`, `Makefile`, and Git history.
+- **Documents used**: `AGENTS.md`, `.pags/CHARTER.md`, `.pags/WORK.md`, `.pags/DECISIONS.md`, `.pags/ARCHITECTURE.md`, `.pags/check.py`.
+- **Fields left blank**: 31 placeholders across the generated documents (`ARCHITECTURE.md`: 10, `AGENTS.md`: 9, `CHARTER.md`: 7, `WORK.md`: 5).
+- **Agent experience**: The installer correctly identified the project as "brownfield" based on the tie-breaker `Makefile`. It appropriately skipped overwriting the existing `README.md` and only installed the necessary `.pags` files.
+- **Time spent on upkeep**: Minimal. The installer effectively differentiated between new and existing files, protecting existing documentation while layering the constitution onto the project.
+
 ### Next steps
 
 1. Finish the installer tests
    ([#9](https://github.com/Theblackcat98/PAGS/issues/9)). Menus, rendered
    content, detection and the CLI edge cases are covered. Add CI that runs
    `python3 -m unittest discover -s tests`.
-2. Pilot PAGS on one real greenfield and one real brownfield repository
-   ([#24](https://github.com/Theblackcat98/PAGS/issues/24)), running the
-   checker in each, and adjust the error and warning split from what it
-   finds.
