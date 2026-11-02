@@ -33,6 +33,19 @@ its statuses and rules, and `python3 .pags/check.py` enforces them.
 8. Update the records the table names. Move finished entries to the archive.
 9. Rewrite the Now block.
 
+## Corrections
+
+When an agent repeats a mistake, use this loop instead of only adding prose:
+
+1. Record the concrete failure and intended behavior.
+2. Determine if it is a recurring class of errors, not an isolated mistake.
+3. Identify the strongest proportionate prevention. Prefer constraints, then automated checks/CI, then regression tests; use documentation only for context and residual judgment.
+4. Add a regression case showing the old failure is caught.
+5. Document the rule's enforcement location and limitations.
+6. Update existing guidance only if it remains useful.
+
+Do not automatically turn every review comment into a permanent rule or expand scope without authorization.
+
 ## Changes
 
 | Change | Read first | Then update |
@@ -47,6 +60,7 @@ its statuses and rules, and `python3 .pags/check.py` enforces them.
 | User-visible behavior | README | README, in the same change |
 | Temporary rule deviation | The rule being bent | Exception in Decisions (maintainer grants) |
 | Formatting, typos, doc fixes | Nothing extra | Nothing, if scope is unchanged |
+| Recurring mistake | Corrections section above | Test/CI rule, Architecture (for constraints) |
 
 If a row names a record that does not exist yet, create it from the template.
 
