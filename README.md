@@ -242,6 +242,10 @@ skipped.
 `.gitignore` with `*`, so git ignores it without the installer editing the
 project's own `.gitignore`.
 
+**2026-10-30: where the approver is named.** Named explicitly in the header of
+`AGENTS.md` and the charter, keeping authority tied to the records instead of
+relying on a CODEOWNERS file.
+
 ### Open questions
 
 - Where the records live: `.pags/` or `docs/pags/`
@@ -250,8 +254,6 @@ project's own `.gitignore`.
 - An ID scheme that cannot collide across parallel branches
   ([#13](https://github.com/Theblackcat98/PAGS/issues/13)). The checker
   catches collisions after a merge but does not prevent them.
-- Where the approver is named
-  ([#11](https://github.com/Theblackcat98/PAGS/issues/11)).
 
 The full list of follow-ups is tracked in
 [#1](https://github.com/Theblackcat98/PAGS/issues/1).
