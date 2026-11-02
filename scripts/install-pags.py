@@ -41,6 +41,7 @@ CORE_TEMPLATES = (
 
 OPTIONAL_TEMPLATES = (
     Template("DESIGN.md", ".pags/DESIGN.md", "Durable user experience and design language"),
+    Template("roles.yaml", ".pags/roles.yaml", "Role-based model and tool configuration"),
 )
 
 # Tool files PAGS owns. Every profile installs them, and a rerun updates a
