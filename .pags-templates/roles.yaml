@@ -1,0 +1,36 @@
+# {{PROJECT_NAME}} roles and runtime adaptation
+#
+# Maps portable engineering roles to models and tools available in the
+# current coding environment. This file is an optional runtime adapter.
+# Record effective configuration in run metadata when reproducibility
+# matters, without exposing secrets or adding runtime-specific settings
+# to canonical project decisions. Keep the core PAGS contract vendor-neutral.
+
+roles:
+  # Makes bounded code changes and reports what changed.
+  implementer:
+    model: "{{model}}"
+    fallback: "{{fallback}}"
+    tools:
+      - "{{tool}}"
+
+  # Traces behavior and evaluates design alternatives.
+  architect_investigator:
+    model: "{{model}}"
+    fallback: "{{fallback}}"
+    tools:
+      - "{{tool}}"
+
+  # Independently evaluates changes and evidence.
+  verifier_reviewer:
+    model: "{{model}}"
+    fallback: "{{fallback}}"
+    tools:
+      - "{{tool}}"
+
+  # Routes tasks and maintains scope and progress, when the runtime supports this role.
+  coordinator:
+    model: "{{model}}"
+    fallback: "{{fallback}}"
+    tools:
+      - "{{tool}}"

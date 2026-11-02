@@ -284,7 +284,7 @@ class Checker:
         if charter.is_file():
             match = CHARTER_STATUS.search("\n".join(visible_lines(charter.read_text(encoding="utf-8"))))
             accepted = bool(match) and match.group(1).lower() == "accepted"
-        files = [self.root / "AGENTS.md", self.root / "README.md", *record_files]
+        files = [self.root / "AGENTS.md", self.root / "README.md", self.records / "roles.yaml", *record_files]
         for path in files:
             if not path.is_file():
                 continue
