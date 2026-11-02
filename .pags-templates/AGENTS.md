@@ -33,6 +33,17 @@ its statuses and rules, and `python3 .pags/check.py` enforces them.
 8. Update the records the table names. Move finished entries to the archive.
 9. Rewrite the Now block.
 
+## Review
+
+Review effort scales to the risk of the change. Reviewers default to read-only, and should report findings with severity, affected behavior, evidence, and rationale. The implementing agent must not silently treat reviewer suggestions as authorization to expand scope. Multiple-model review is optional for high-risk or ambiguous work, but model agreement is not proof of correctness.
+
+| Risk level | Checks |
+|---|---|
+| **Low** | Inspect the diff and run relevant focused tests. |
+| **Medium** | Add regression coverage and a focused independent review. |
+| **High** | Independent review, explicit acceptance criteria, broader regression checks, and a clear evidence summary. |
+| **Security or irreversible** | Explicit maintainer approval and required safeguards before execution or release. |
+
 ## Changes
 
 | Change | Read first | Then update |

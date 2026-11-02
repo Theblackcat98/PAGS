@@ -25,6 +25,17 @@ When the Veritas implementation is relevant, inspect:
 - `../veritas/docs/DECISIONS.md`
 - Other Veritas files only when they answer a specific design question.
 
+## Review
+
+Review effort scales to the risk of the change. Reviewers default to read-only, and should report findings with severity, affected behavior, evidence, and rationale. The implementing agent must not silently treat reviewer suggestions as authorization to expand scope. Multiple-model review is optional for high-risk or ambiguous work, but model agreement is not proof of correctness.
+
+| Risk level | Checks |
+|---|---|
+| **Low** | Inspect the diff and run relevant focused tests. |
+| **Medium** | Add regression coverage and a focused independent review. |
+| **High** | Independent review, explicit acceptance criteria, broader regression checks, and a clear evidence summary. |
+| **Security or irreversible** | Explicit maintainer approval and required safeguards before execution or release. |
+
 ## Continuation
 
 At the end of a substantial work session, keep `README.md` useful for a future session by recording:
