@@ -35,6 +35,7 @@ README.md              What users rely on
 .pags/DECISIONS.md     Why choices were made; temporary exceptions
 .pags/ARCHITECTURE.md  What exists today; known debt
 .pags/DESIGN.md        Optional: interface and design contract
+.pags/VERIFICATION.md  Optional: instructions for verifying real application behavior
 .pags/check.py         The records checker
 ```
 
@@ -182,7 +183,7 @@ adopted by any repository. It does not implement Veritas features.
 **2026-09-27: template format.** Chosen by the maintainer to make the records
 cheaper for agents to read and easier for humans to scan.
 
-1. **Four records (plus optional DESIGN) instead of nine.** ROADMAP and
+1. **Four records (plus optional DESIGN and VERIFICATION) instead of nine.** ROADMAP and
    TASKS merged into WORK. EXCEPTIONS and DEPENDENCIES merged into DECISIONS
    (an exception is a decision with an end date; versions stay in the
    lockfile). QUALITY merged into AGENTS.md, which is the only place commands
