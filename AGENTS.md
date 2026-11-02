@@ -7,7 +7,7 @@ PAGS is a meta project. It designs a portable project constitution and delivery 
 ## Working rules
 
 1. Read `README.md` before doing work. It is the current source of context, findings, open questions, and next steps.
-2. Treat `../veritas` as a read-only reference unless the user explicitly asks to change it.
+2. Treat `../veritas` as a read-only reference unless the user explicitly asks to change it. Note that `../veritas` is optional and only present in the maintainer's local workspace; if it is missing, continue without it.
 3. Do not add `CHARTER.md`, `ROADMAP.md`, `TASKS.md`, `DECISIONS.md`, or other governance files to PAGS unless explicitly requested. The proposed system is a design subject, not automatically PAGS's own process.
 4. Keep work focused on the meta problem: making the Veritas-style system portable across greenfield and brownfield projects.
 5. Work directly. Do not use subagents unless the user requests them.
@@ -17,7 +17,7 @@ PAGS is a meta project. It designs a portable project constitution and delivery 
 
 ## Research reference
 
-When the Veritas implementation is relevant, inspect:
+When the Veritas implementation is relevant, inspect the following files if `../veritas` exists (it is optional and only present in the maintainer's local workspace; skip this if it does not exist):
 
 - `../veritas/AGENTS.md`
 - `../veritas/docs/CHARTER.md`
