@@ -50,6 +50,17 @@ its statuses and rules, and `python3 .pags/check.py` enforces them.
 
 If a row names a record that does not exist yet, create it from the template.
 
+## Task router
+
+Classify the request and use only the relevant playbook:
+
+- **Investigation:** trace the implementation, gather evidence, and report findings without editing unless asked.
+- **Bug fix:** reproduce the defect, identify its root cause, implement a focused fix, and run regression verification.
+- **Feature:** define observable behavior and acceptance criteria, inspect relevant architecture, implement, and test the actual contract.
+- **Refactor:** establish baseline behavior, make incremental structural changes, and demonstrate that behavior is preserved.
+- **Performance:** measure a baseline, profile the bottleneck, make a targeted change, and compare results under equivalent conditions.
+- **Multi-phase …**
+
 ## Authority
 
 - Agents may propose outcomes and decisions, create and progress tasks inside
