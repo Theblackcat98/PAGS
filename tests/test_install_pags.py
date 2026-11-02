@@ -295,6 +295,20 @@ class CliTest(InstallerTestCase):
         self.assertIn("Plan declined. No files were changed.", output)
         self.assertEqual(list(self.target.iterdir()), [])
 
+    def test_idempotence_reports_nothing_to_do(self) -> None:
+        result = self.run_process("--yes", "--profile", "complete")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+        result2 = self.run_process("--yes", "--profile", "complete")
+        self.assertEqual(result2.returncode, 0, result2.stdout + result2.stderr)
+        self.assertIn("Nothing to do", result2.stdout)
+
+    def test_errors_exit_1(self) -> None:
+        with mock.patch("pathlib.Path.mkdir", side_effect=OSError("Permission denied")):
+            code, output, _ = self.run_installer("--yes")
+            self.assertEqual(code, 1)
+            self.assertIn("Permission denied", output)
+
     def test_interrupt_still_exits_130(self) -> None:
         def interrupt(prompt: str) -> str:
             raise KeyboardInterrupt
