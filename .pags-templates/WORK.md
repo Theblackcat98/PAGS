@@ -25,11 +25,11 @@ Rules:
 - Rewrite the Now block at the end of every session. Do not append to it.
 
 Example:
-- R-003 [approved] Offline edits sync when the network returns
+- R-offline-sync [approved] Offline edits sync when the network returns
   approved-by: sam 2026-09-20
-  - T-014 [doing] Queue writes while offline -> D-012
+  - T-queue-writes [doing] Queue writes while offline -> D-sqlite-queue
     done-when: queued writes survive an app restart
-  - T-015 [todo] Resolve conflicts on reconnect
+  - T-resolve-conflicts [todo] Resolve conflicts on reconnect
 -->
 
 ## Now

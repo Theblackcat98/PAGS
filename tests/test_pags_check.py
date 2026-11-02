@@ -117,6 +117,11 @@ class RecordsTestCase(unittest.TestCase):
 
 
 class ValidRecordsTest(RecordsTestCase):
+    def test_string_slug_is_valid(self) -> None:
+        self.edit("WORK.md", "T-003 [todo]", "T-fix-crash [todo]")
+        code, output = self.check()
+        self.assertEqual(code, 0, output)
+
     def test_clean_records_pass(self) -> None:
         code, output = self.check()
         self.assertEqual(code, 0, output)

@@ -28,14 +28,14 @@ Rules:
   write `why: unknown (backfilled YYYY-MM-DD)`. Never guess.
 
 Example:
-- D-012 [accepted 2026-09-20] Use SQLite for the offline write queue -> R-003
+- D-sqlite-queue [accepted 2026-09-20] Use SQLite for the offline write queue -> R-offline-sync
   why: writes must survive restarts on mobile; IndexedDB has no Node support
   cost: adds a native build step
-  replaces: D-004
-- D-020 [accepted 2026-09-22] Add dependency: better-sqlite3 -> D-012
+  replaces: D-old-queue
+- D-better-sqlite3 [accepted 2026-09-22] Add dependency: better-sqlite3 -> D-sqlite-queue
   why: synchronous API fits the queue; maintained and MIT licensed
   cost: native module, needs prebuilt binaries for CI
-- D-015 [exception until 2026-12-01] Skip end-to-end tests on Windows CI
+- D-skip-win-tests [exception until 2026-12-01] Skip end-to-end tests on Windows CI
   why: the runner image cannot start WebView2
   exit: runner image ships WebView2
   approved-by: sam 2026-09-24

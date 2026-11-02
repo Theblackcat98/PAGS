@@ -113,7 +113,7 @@ class EnterDefaultsTest(InstallerTestCase):
         installed = sorted(p.relative_to(self.target).as_posix() for p in self.target.rglob("*") if p.is_file())
         self.assertEqual(
             installed,
-            [".pags/CHARTER.md", ".pags/DECISIONS.md", ".pags/WORK.md", ".pags/check.py", ".pags/manifest.json", "AGENTS.md", "README.md"],
+            [".pags/CHARTER.md", ".pags/DECISIONS-ARCHIVE.md", ".pags/DECISIONS.md", ".pags/WORK-ARCHIVE.md", ".pags/WORK.md", ".pags/check.py", ".pags/manifest.json", "AGENTS.md", "README.md"],
         )
 
     def test_menu_numbers_still_select_other_options(self) -> None:

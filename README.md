@@ -57,10 +57,10 @@ Every record entry is one headline line, optionally followed by indented
 `key: value` detail:
 
 ```text
-- R-003 [approved] Offline edits sync when the network returns
-  - T-014 [doing] Queue writes while offline -> D-012
+- R-offline-sync [approved] Offline edits sync when the network returns
+  - T-queue-writes [doing] Queue writes while offline -> D-sqlite-queue
     done-when: queued writes survive an app restart
-- D-012 [accepted 2026-09-20] Use SQLite for the offline write queue -> R-003
+- D-sqlite-queue [accepted 2026-09-20] Use SQLite for the offline write queue -> R-offline-sync
   why: writes must survive restarts on mobile
   cost: adds a native build step
 ```
@@ -247,9 +247,6 @@ project's own `.gitignore`.
 - Where the records live: `.pags/` or `docs/pags/`
   ([#17](https://github.com/Theblackcat98/PAGS/issues/17)). The checker
   takes `--records-dir`, so either works.
-- An ID scheme that cannot collide across parallel branches
-  ([#13](https://github.com/Theblackcat98/PAGS/issues/13)). The checker
-  catches collisions after a merge but does not prevent them.
 - Where the approver is named
   ([#11](https://github.com/Theblackcat98/PAGS/issues/11)).
 

@@ -17,12 +17,12 @@ from pathlib import Path
 
 VERSION = "1"
 
-ENTRY_START = re.compile(r"^([ \t]*)- ([RTDA])-(\d+)\b")
-ENTRY = re.compile(r"^([ \t]*)- ([RTDA])-(\d+) \[([^\]]*)\](.*)$")
+ENTRY_START = re.compile(r"^([ \t]*)- ([RTDA])-([a-zA-Z0-9-]+)\b")
+ENTRY = re.compile(r"^([ \t]*)- ([RTDA])-([a-zA-Z0-9-]+) \[([^\]]*)\](.*)$")
 DETAIL = re.compile(r"^[ \t]+([a-z][a-z-]*):[ \t]*(.*)$")
 HEADING = re.compile(r"^#{1,6}[ \t]+(.*?)[ \t]*#*$")
 FENCE = re.compile(r"^[ \t]*(```|~~~)")
-ID_REF = re.compile(r"\b([RTDA])-(\d+)\b")
+ID_REF = re.compile(r"\b([RTDA])-([a-zA-Z0-9-]+)\b")
 DATE = r"\d{4}-\d{2}-\d{2}"
 DECISION_STATUS = re.compile(
     rf"^(?:(proposed|accepted|rejected|replaced|resolved)(?: ({DATE}))?|exception until ({DATE}))$"
@@ -50,7 +50,7 @@ OUTCOME_OPEN = {"approved", "doing", "done"}
 @dataclass
 class Entry:
     prefix: str
-    number: int
+    slug: str
     raw_id: str
     status: str
     summary: str
@@ -63,8 +63,8 @@ class Entry:
     details: dict[str, tuple[str, int]] = field(default_factory=dict)
 
     @property
-    def key(self) -> tuple[str, int]:
-        return (self.prefix, self.number)
+    def key(self) -> tuple[str, str]:
+        return (self.prefix, self.slug)
 
     @property
     def state(self) -> str:
@@ -148,7 +148,7 @@ class Checker:
         summary, _, link_text = rest.partition(" -> ")
         entry = Entry(
             prefix=prefix,
-            number=int(digits),
+            slug=str(int(digits)) if digits.isdigit() else digits,
             raw_id=f"{prefix}-{digits}",
             status=" ".join(status.split()),
             summary=summary.strip(),
@@ -166,7 +166,7 @@ class Checker:
         return entry
 
     def check_entries(self) -> None:
-        by_key: dict[tuple[str, int], Entry] = {}
+        by_key: dict[tuple[str, str], Entry] = {}
         for entry in self.entries:
             first = by_key.get(entry.key)
             if first:
@@ -178,7 +178,7 @@ class Checker:
             else:
                 by_key[entry.key] = entry
 
-        replaced_by: dict[tuple[str, int], Entry] = {}
+        replaced_by: dict[tuple[str, str], Entry] = {}
         for entry in self.entries:
             self.check_file(entry)
             self.check_status(entry)
@@ -189,7 +189,7 @@ class Checker:
             replaces = entry.details.get("replaces")
             if replaces:
                 for ref in ID_REF.findall(replaces[0]):
-                    target = by_key.get((ref[0], int(ref[1])))
+                    target = by_key.get((ref[0], str(int(ref[1])) if ref[1].isdigit() else ref[1]))
                     if target is None:
                         continue
                     replaced_by[target.key] = entry
@@ -320,9 +320,9 @@ def indent_width(text: str) -> int:
     return len(expanded) - len(expanded.lstrip(" "))
 
 
-def parse_id(ref: str) -> tuple[str, int]:
-    prefix, number = ref.split("-", 1)
-    return (prefix, int(number))
+def parse_id(ref: str) -> tuple[str, str]:
+    prefix, slug = ref.split("-", 1)
+    return (prefix, str(int(slug)) if slug.isdigit() else slug)
 
 
 def parse_date(text: str) -> date | None:

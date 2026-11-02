@@ -35,7 +35,9 @@ CORE_TEMPLATES = (
     Template("README.md", "README.md", "User-facing project documentation"),
     Template("CHARTER.md", ".pags/CHARTER.md", "Identity, boundaries, and principles"),
     Template("WORK.md", ".pags/WORK.md", "Now block, approved outcomes, and tasks"),
+    Template("WORK-ARCHIVE.md", ".pags/WORK-ARCHIVE.md", "Archive for finished tasks and outcomes"),
     Template("DECISIONS.md", ".pags/DECISIONS.md", "Decisions, exceptions, and dependency reasons"),
+    Template("DECISIONS-ARCHIVE.md", ".pags/DECISIONS-ARCHIVE.md", "Archive for replaced and resolved decisions"),
     Template("ARCHITECTURE.md", ".pags/ARCHITECTURE.md", "Current system structure and behavior"),
 )
 
@@ -61,7 +63,9 @@ MINIMAL_TEMPLATE_NAMES = {
     "README.md",
     "CHARTER.md",
     "WORK.md",
+    "WORK-ARCHIVE.md",
     "DECISIONS.md",
+    "DECISIONS-ARCHIVE.md",
 }
 
 # Brownfield/greenfield detection. History and code decide; build files only
