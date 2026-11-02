@@ -9,6 +9,17 @@ answers current, and a checker that fails when the records stop agreeing. It
 works for new (greenfield) and existing (brownfield) projects and needs only
 Python 3.10 or later.
 
+Tools like GitHub Spec Kit and Kiro are built around writing a spec per
+feature. PAGS governs the **whole project over time** and works alongside
+per-feature spec tools rather than as another spec workflow. What sets it
+apart:
+
+- honesty about existing code (observed vs. intended vs. unknown; no invented
+  historical intent);
+- decisions that are superseded rather than edited;
+- tracked exceptions with an owner, a review date and an exit condition;
+- scope gates on what agents may change.
+
 A visual guide to the design is published from `docs/index.html` at
 <https://theblackcat98.github.io/PAGS/> (GitHub Pages, served from the `/docs`
 folder of `main`). Keep it in sync when the design changes.
