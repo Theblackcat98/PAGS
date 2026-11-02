@@ -15,6 +15,19 @@ PAGS is a meta project. It designs a portable project constitution and delivery 
 7. When new durable context is produced, update `README.md` rather than creating parallel documentation by default.
 8. Do not modify application code or project files outside PAGS without explicit instruction.
 
+## Corrections
+
+When an agent repeats a mistake, use this loop instead of only adding prose:
+
+1. Record the concrete failure and intended behavior.
+2. Determine if it is a recurring class of errors, not an isolated mistake.
+3. Identify the strongest proportionate prevention. Prefer constraints, then automated checks/CI, then regression tests; use documentation only for context and residual judgment.
+4. Add a regression case showing the old failure is caught.
+5. Document the rule's enforcement location and limitations.
+6. Update existing guidance only if it remains useful.
+
+Do not automatically turn every review comment into a permanent rule or expand scope without authorization.
+
 ## Research reference
 
 When the Veritas implementation is relevant, inspect:
